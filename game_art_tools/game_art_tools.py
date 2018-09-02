@@ -15,7 +15,6 @@ class GameArtTools(DockWidget):
         self.setWindowTitle(self.TITLE)
         self.createInterface()
 
-
     def createInterface(self):
         uiContainer = QWidget(self)
 
@@ -33,7 +32,6 @@ class GameArtTools(DockWidget):
 
     def canvasChanged(self, canvas):
         pass
-
 
 
 def register_docker():

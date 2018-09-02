@@ -1,5 +1,4 @@
 import os
-
 from krita import *
 from PyQt5.QtWidgets import QFileDialog
 
@@ -53,3 +52,29 @@ class LayerExportSelected():
 
         fileName = QFileDialog.getSaveFileName(caption="Select Directory")[0]
         return fileName
+
+
+# TODO: still a WIP, experimenting with layer hierarchy manipulations
+def getSelectedNodes():
+    return Application.activeWindow().activeView().selectedNodes()
+
+document = Krita.instance().activeDocument()
+rootNode = document.rootNode()
+
+def addToSelectedGroup(nodes):
+    activeNode = document.activeNode()
+    selectedLayers = [n for n in nodes if n.type != 'grouplayer']
+    if not (activeNode.type() == 'grouplayer' and selectedLayers):
+        return
+    activeNode.setChildNodes(selectedLayers)
+
+# For now, all I get is layers cycling regardless of the list I use in setChildNodes
+def moveToTop(node):
+    """Move the node to the top of the current parent"""
+    parent = node.parentNode()
+    nodeList = parent.childNodes()
+    index = nodeList.index(node)
+    newList = [node].extend([n for n in nodeList if n is not node])
+    parent.setChildNodes(nodeList)
+
+document.refreshProjection()
