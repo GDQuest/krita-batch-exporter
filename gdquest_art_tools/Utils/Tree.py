@@ -1,5 +1,8 @@
+import os
 import os.path as osp
 from itertools import chain
+from . import kickstart
+from .Export import subRoot
 
 
 def iterPre(node, maxDepth=-1):
@@ -16,12 +19,14 @@ def iterPre(node, maxDepth=-1):
     -------
     out: iter(Node)
     """
+
     def go(nodes, depth=0):
         for n in nodes:
             yield n
             # recursively call the generator if depth < maxDepth
             it = go(n.children, depth + 1) if maxDepth == -1 or depth < maxDepth else iter()
             yield from it
+
     return go([node])
 
 
@@ -39,11 +44,13 @@ def iterLevel(node, maxDepth=-1):
     -------
     out: iter(Node)
     """
+
     def go(nodes, depth=0):
         yield from nodes
         it = map(lambda n: go(n.children, depth + 1), nodes)
         it = chain(*it) if maxDepth == -1 or depth < maxDepth else iter()
         yield from it
+
     return go([node])
 
 
@@ -62,11 +69,13 @@ def iterLevelGroup(node, maxDepth=-1):
     out: iter(iter(Node))
     Returns an iterator that holds an iterator for each depth level.
     """
+
     def go(nodes, depth=0):
         yield iter(nodes)
         it = map(lambda n: go(n.children, depth + 1), nodes)
         it = chain(*it) if maxDepth == -1 or depth < maxDepth else iter()
         yield from filter(None, it)
+
     return go([node])
 
 
@@ -84,11 +93,13 @@ def iterPost(node, maxDepth=-1):
     -------
     out: iter(Node)
     """
+
     def go(nodes, depth=0):
         for n in nodes:
             it = go(n.children, depth + 1) if maxDepth == -1 or depth < maxDepth else iter()
             yield from it
             yield n
+
     return go([node])
 
 
@@ -105,10 +116,12 @@ def path(node):
     out: list(Node)
     The path of nodes going through all the parents to the given node.
     """
+
     def go(n, acc=[]):
         acc += [n]
         n.parent and go(n.parent, acc)
         return reversed(acc)
+
     return list(go(node))
 
 
@@ -131,4 +144,20 @@ def pathFS(node):
     it = filter(lambda n: n.parent, path(node))
     it = map(lambda n: n.name, it)
     return osp.join(*it)
+
+
+def iterDirs(node):
+    it = iterPre(node)
+    it = filter(lambda n: n.isGroupLayer(), it)
+    it = filter(lambda n: any(i.isExportable()
+                              for i in chain(*map(lambda c: iterPre(c), n.children))), it)
+    it = map(pathFS, it)
+    it = map(subRoot, it)
+    return it
+
+
+def makeDirs(node):
+    it = iterDirs(node)
+    it = map(lambda d: os.makedirs(d, exist_ok=True), it)
+    kickstart(it)
 

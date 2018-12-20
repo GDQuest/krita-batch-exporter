@@ -4,31 +4,35 @@ GDquest Art Tools
 A collection of tools to improve Krita's workflow for game artists, graphic designers,
 and everyone, really! 😉
 """
+import os
 from krita import DockWidget, DockWidgetFactory, DockWidgetFactoryBase, Krita
 from PyQt5.QtWidgets import QPushButton, QLabel, QVBoxLayout, QWidget
 
 from .Infrastructure import WNode
 from .Utils import kickstart
-from .Utils.Tree import iterPre
-from .Utils.Export import makeDirs
-
+from .Utils.Tree import iterPre, pathFS, makeDirs
+from .Utils.Export import subRoot
 
 KI = Krita.instance()
 
 
 def exportAllLayers():
-    root = WNode(KI.activeDocument().rootNode())
+    root = KI.activeDocument().rootNode()
+    root = WNode(root)
     makeDirs(root)
-    it = filter(lambda n: n.isExportable(), iterPre(root))
-    it = map(lambda n: n.save(), it)
+    it = filter(lambda n: n.isExportable() and n.isMarked(), iterPre(root))
+    it = map(WNode.save, it)
     kickstart(it)
 
 
 def exportSelectedLayers():
-    root = WNode(KI.activeDocument().rootNode())
-    makeDirs(root)
-    it = map(WNode, KI.activeWindow().activeView().selectedNodes())
-    it = map(lambda n: n.save(), it)
+    def export(n):
+        os.makedirs(subRoot(pathFS(n.parent)), exist_ok=True)
+        n.save()
+
+    nodes = KI.activeWindow().activeView().selectedNodes()
+    it = map(WNode, nodes)
+    it = map(export, it)
     kickstart(it)
 
 
@@ -63,8 +67,10 @@ class GameArtTools(DockWidget):
 
 
 def registerDocker():
-    docker = DockWidgetFactory('pykrita_gdquest_art_tools',
-                               DockWidgetFactoryBase.DockRight,
-                               GameArtTools)
+    docker = DockWidgetFactory(
+        'pykrita_gdquest_art_tools',
+        DockWidgetFactoryBase.DockRight,
+        GameArtTools
+    )
     KI.addDockWidgetFactory(docker)
 
