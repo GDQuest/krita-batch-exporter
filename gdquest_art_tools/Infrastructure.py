@@ -4,7 +4,7 @@ import os.path as osp
 from PIL import Image, ImageOps
 
 from .Utils import kickstart
-from .Utils.Export import sanitize, subRoot
+from .Utils.Export import sanitize, exportPath
 from .Utils.Tree import pathFS
 
 
@@ -122,7 +122,7 @@ class WNode:
         img = Image.frombytes('RGBA', self.size, img, 'raw', 'BGRA', 0, 1)
         return img
 
-    def save(self):
+    def save(self, dirname=''):
         def toJPEG(img):
             newImg = Image.new('RGBA', img.size, 4 * (255,))
             newImg.alpha_composite(img)
@@ -131,9 +131,10 @@ class WNode:
         img = self.dataToPIL()
         path, ext, margin, scale = (self.meta['d'][0], self.meta['e'],
                                     self.meta['m'][0], self.meta['s'])
-        path and os.makedirs(path, exist_ok=True)
-        path = '{}_{}'.format(osp.join(path, self.name) if path else subRoot(pathFS(self)),
-                              's{s:03d}.{e}')  # yapf: disable
+
+        fullPath = exportPath(path, dirname) if path else exportPath(pathFS(self), dirname)
+        path and os.makedirs(fullPath, exist_ok=True)
+        path = '{}_{}'.format(osp.join(fullPath, self.name) if path else fullPath, 's{s:03d}.{e}')
 
         it = product(ext, scale)
         it = starmap(lambda e, s: (s, e, path.format(e=e, s=s)), it)

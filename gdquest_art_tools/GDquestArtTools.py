@@ -5,34 +5,39 @@ A collection of tools to improve Krita's workflow for game artists, graphic desi
 and everyone, really! 😉
 """
 import os
+import os.path as osp
+from functools import partial
 from krita import DockWidget, DockWidgetFactory, DockWidgetFactoryBase, Krita
 from PyQt5.QtWidgets import QPushButton, QLabel, QVBoxLayout, QWidget
 
 from .Infrastructure import WNode
-from .Utils import kickstart
-from .Utils.Tree import iterPre, pathFS, makeDirs
-from .Utils.Export import subRoot
+from .Utils import kickstart, flip
+from .Utils.Tree import iterPre, pathFS
+from .Utils.Export import exportPath, makeDirs
 
 KI = Krita.instance()
 
 
 def exportAllLayers():
-    root = KI.activeDocument().rootNode()
+    doc = KI.activeDocument()
+    root = doc.rootNode()
     root = WNode(root)
-    makeDirs(root)
+    dirname = osp.dirname(doc.fileName())
+    makeDirs(root, dirname)
     it = filter(lambda n: n.isExportable() and n.isMarked(), iterPre(root))
-    it = map(WNode.save, it)
+    it = map(partial(flip(WNode.save), dirname), it)
     kickstart(it)
 
 
 def exportSelectedLayers():
-    def export(n):
-        os.makedirs(subRoot(pathFS(n.parent)), exist_ok=True)
-        n.save()
+    def export(n, dirname=''):
+        os.makedirs(exportPath(pathFS(n.parent), dirname), exist_ok=True)
+        n.save(dirname)
 
+    dirname = osp.dirname(KI.activeDocument().fileName())
     nodes = KI.activeWindow().activeView().selectedNodes()
     it = map(WNode, nodes)
-    it = map(export, it)
+    it = map(partial(flip(export), dirname), it)
     kickstart(it)
 
 
