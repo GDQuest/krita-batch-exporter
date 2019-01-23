@@ -4,41 +4,57 @@ GDquest Art Tools
 A collection of tools to improve Krita's workflow for game artists, graphic designers,
 and everyone, really! 😉
 """
-import os
 import os.path as osp
 from functools import partial
 from krita import DockWidget, DockWidgetFactory, DockWidgetFactoryBase, Krita
-from PyQt5.QtWidgets import QPushButton, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import (QPushButton, QStatusBar, QLabel, QLineEdit, QHBoxLayout,
+                             QVBoxLayout, QWidget)
 
 from .Infrastructure import WNode
 from .Utils import kickstart, flip
-from .Utils.Tree import iterPre, pathFS
-from .Utils.Export import exportPath, makeDirs
+from .Utils.Tree import iterPre
 
 KI = Krita.instance()
+ERROR_MSG = 'ERROR: only RGBA & 8bit depth supported!'
+ERROR_TIMEOUT = 8000
+DONE_TIMEOUT = 5000
 
 
-def exportAllLayers():
+def ensureRGBAU8(doc, statusBar):
+    ensured = doc.colorModel() == 'RGBA' and doc.colorDepth() == 'U8'
+    if not ensured:
+        statusBar.showMessage(ERROR_MSG, ERROR_TIMEOUT)
+    return ensured
+
+
+def exportAllLayers(statusBar):
     doc = KI.activeDocument()
+    if not ensureRGBAU8(doc, statusBar):
+        return
+
     root = doc.rootNode()
     root = WNode(root)
+
     dirname = osp.dirname(doc.fileName())
-    makeDirs(root, dirname)
     it = filter(lambda n: n.isExportable() and n.isMarked(), iterPre(root))
     it = map(partial(flip(WNode.save), dirname), it)
     kickstart(it)
 
+    statusBar.showMessage('Exported all layers.', DONE_TIMEOUT)
 
-def exportSelectedLayers():
-    def export(n, dirname=''):
-        os.makedirs(exportPath(pathFS(n.parent), dirname), exist_ok=True)
-        n.save(dirname)
 
-    dirname = osp.dirname(KI.activeDocument().fileName())
+def exportSelectedLayers(statusBar):
+    doc = KI.activeDocument()
+    if not ensureRGBAU8(doc, statusBar):
+        return
+
+    dirname = osp.dirname(doc.fileName())
     nodes = KI.activeWindow().activeView().selectedNodes()
     it = map(WNode, nodes)
-    it = map(partial(flip(export), dirname), it)
+    it = map(partial(flip(WNode.save), dirname), it)
     kickstart(it)
+
+    statusBar.showMessage('Exported selected layers.', DONE_TIMEOUT)
 
 
 def renameLayers():
@@ -46,12 +62,12 @@ def renameLayers():
 
 
 class GameArtTools(DockWidget):
-    TITLE = 'GDquest Art Tools'
+    title = 'GDquest Art Tools'
 
     def __init__(self):
         super().__init__()
         KI.setBatchmode(True)
-        self.setWindowTitle(self.TITLE)
+        self.setWindowTitle(self.title)
         self.createInterface()
 
     def createInterface(self):
@@ -63,6 +79,7 @@ class GameArtTools(DockWidget):
         renameLabel = QLabel('Rename')
         renameLineEdit = QLineEdit()
         renameButton = QPushButton('Rename')
+        statusBar = QStatusBar()
 
         vboxlayout = QVBoxLayout()
         vboxlayout.addWidget(exportLabel)
@@ -77,12 +94,13 @@ class GameArtTools(DockWidget):
 
         vboxlayout.addLayout(hboxlayout)
         vboxlayout.addStretch()
+        vboxlayout.addWidget(statusBar)
 
         uiContainer.setLayout(vboxlayout)
         self.setWidget(uiContainer)
 
-        exportSelectedLayersButton.released.connect(exportSelectedLayers)
-        exportAllLayersButton.released.connect(exportAllLayers)
+        exportSelectedLayersButton.released.connect(partial(exportSelectedLayers, statusBar))
+        exportAllLayersButton.released.connect(partial(exportAllLayers, statusBar))
         renameLineEdit.returnPressed.connect(renameLayers)
         renameButton.released.connect(renameLayers)
 

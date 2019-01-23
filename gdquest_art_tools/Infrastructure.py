@@ -1,11 +1,14 @@
 from itertools import product, starmap
 import os
 import os.path as osp
+from krita import Krita
 from PIL import Image, ImageOps
 
 from .Utils import kickstart
 from .Utils.Export import sanitize, exportPath
 from .Utils.Tree import pathFS
+
+KI = Krita.instance()
 
 
 class WNode:
@@ -43,6 +46,10 @@ class WNode:
         return meta
 
     @property
+    def path(self):
+        return self.meta['d'][0]
+
+    @property
     def parent(self):
         return WNode(self.node.parentNode())
 
@@ -63,6 +70,9 @@ class WNode:
     def size(self):
         bounds = self.node.bounds()
         return bounds.width(), bounds.height()
+
+    def hasDestination(self):
+        return 'd=' in self.node.name()
 
     def isExportable(self):
         return (self.isPaintLayer()
@@ -115,32 +125,30 @@ class WNode:
     def isColorizeMask(self):
         return self.type == 'colorizemask'
 
-    def dataToPIL(self):
-        nd = self.node.duplicate()
-        nd.setColorSpace('RGBA', 'U8', 'sRGB-elle-V2-srgbtrc')
-        img = nd.projectionPixelData(*self.bounds).data()
-        img = Image.frombytes('RGBA', self.size, img, 'raw', 'BGRA', 0, 1)
-        return img
-
     def save(self, dirname=''):
+        def dataToPIL():
+            img = self.node.projectionPixelData(*self.bounds).data()
+            img = Image.frombytes('RGBA', self.size, img, 'raw', 'BGRA', 0, 1)
+            return img
+
         def toJPEG(img):
             newImg = Image.new('RGBA', img.size, 4 * (255,))
             newImg.alpha_composite(img)
             return newImg.convert('RGB')
 
-        img = self.dataToPIL()
+        img = dataToPIL()
         path, ext, margin, scale = (self.meta['d'][0], self.meta['e'],
                                     self.meta['m'][0], self.meta['s'])
 
-        fullPath = exportPath(path, dirname) if path else exportPath(pathFS(self), dirname)
-        path and os.makedirs(fullPath, exist_ok=True)
-        path = '{}_{}'.format(osp.join(fullPath, self.name) if path else fullPath, 's{s:03d}.{e}')
+        dirPath = exportPath(path, dirname) if path else exportPath(pathFS(self.parent), dirname)
+        os.makedirs(dirPath, exist_ok=True)
+        path = '{}_{}'.format(osp.join(dirPath, self.name), 's{s:03d}.{e}')
 
-        it = product(ext, scale)
-        it = starmap(lambda e, s: (s, e, path.format(e=e, s=s)), it)
+        it = product(scale, ext)
+        it = starmap(lambda s, e: (s, e, path.format(e=e, s=s)), it)
         it = starmap(lambda s, e, p: ([int(1e-2*wh*s) for wh in self.size], 100 - s != 0, e, p), it)
-        it = starmap(lambda sWH, sDo, e, p: (img.resize(sWH, Image.LANCZOS)
-                                             if sDo else img, e, p), it)
+        it = starmap(lambda sWH, sDo, e, p: (img.resize(sWH, Image.LANCZOS) if sDo else img,
+                                             e, p), it)
         it = starmap(lambda i, e, p: (ImageOps.expand(i, margin, (255, 255, 255, 0)), e, p), it)
         it = starmap(lambda i, e, p: (toJPEG(i) if e in ('jpg', 'jpeg') else i, p), it)
         it = starmap(lambda i, p: i.save(p), it)

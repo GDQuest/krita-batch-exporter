@@ -1,8 +1,5 @@
-import os
 import os.path as osp
 import re
-from . import kickstart
-from .Tree import iterDirs
 from ..Config import config
 
 
@@ -20,12 +17,4 @@ def sanitize(path):
     ps = map(lambda p: re.sub(config['sym'], '_', p), ps)
     ps = osp.sep.join(ps)
     return ps
-
-
-def makeDirs(node, dirname=''):
-    it = iterDirs(node)
-    it = map(exportPath, it)
-    it = map(lambda d: osp.join(dirname, d), it)
-    it = map(lambda d: os.makedirs(d, exist_ok=True), it)
-    kickstart(it)
 
