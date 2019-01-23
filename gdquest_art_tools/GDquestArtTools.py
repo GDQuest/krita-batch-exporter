@@ -8,7 +8,7 @@ import os
 import os.path as osp
 from functools import partial
 from krita import DockWidget, DockWidgetFactory, DockWidgetFactoryBase, Krita
-from PyQt5.QtWidgets import QPushButton, QLabel, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QPushButton, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QWidget
 
 from .Infrastructure import WNode
 from .Utils import kickstart, flip
@@ -41,6 +41,10 @@ def exportSelectedLayers():
     kickstart(it)
 
 
+def renameLayers():
+    print('test')
+
+
 class GameArtTools(DockWidget):
     TITLE = 'GDquest Art Tools'
 
@@ -54,18 +58,33 @@ class GameArtTools(DockWidget):
         uiContainer = QWidget(self)
 
         exportLabel = QLabel('Export')
-        exportAllLayersButton = QPushButton('All Layers', uiContainer)
-        exportAllLayersButton.released.connect(exportAllLayers)
+        exportAllLayersButton = QPushButton('All Layers')
+        exportSelectedLayersButton = QPushButton('Selected Layers')
+        renameLabel = QLabel('Rename')
+        renameLineEdit = QLineEdit()
+        renameButton = QPushButton('Rename')
 
-        exportSelectedLayersButton = QPushButton('Selected Layers', uiContainer)
-        exportSelectedLayersButton.released.connect(exportSelectedLayers)
+        vboxlayout = QVBoxLayout()
+        vboxlayout.addWidget(exportLabel)
+        vboxlayout.addWidget(exportAllLayersButton)
+        vboxlayout.addWidget(exportSelectedLayersButton)
+        vboxlayout.addWidget(renameLabel)
+        vboxlayout.addWidget(renameLineEdit)
 
-        uiContainer.setLayout(QVBoxLayout())
-        uiContainer.layout().addWidget(exportLabel)
-        uiContainer.layout().addWidget(exportAllLayersButton)
-        uiContainer.layout().addWidget(exportSelectedLayersButton)
+        hboxlayout = QHBoxLayout()
+        hboxlayout.addStretch()
+        hboxlayout.addWidget(renameButton)
 
+        vboxlayout.addLayout(hboxlayout)
+        vboxlayout.addStretch()
+
+        uiContainer.setLayout(vboxlayout)
         self.setWidget(uiContainer)
+
+        exportSelectedLayersButton.released.connect(exportSelectedLayers)
+        exportAllLayersButton.released.connect(exportAllLayers)
+        renameLineEdit.returnPressed.connect(renameLayers)
+        renameButton.released.connect(renameLayers)
 
     def canvasChanged(self, canvas):
         pass
