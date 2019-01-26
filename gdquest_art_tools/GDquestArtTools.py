@@ -7,58 +7,74 @@ and everyone, really! 😉
 import os.path as osp
 from functools import partial
 from krita import DockWidget, DockWidgetFactory, DockWidgetFactoryBase, Krita
-from PyQt5.QtWidgets import (QPushButton, QStatusBar, QLabel, QLineEdit, QHBoxLayout,
-                             QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import (
+    QPushButton,
+    QStatusBar,
+    QLabel,
+    QLineEdit,
+    QHBoxLayout,
+    QVBoxLayout,
+    QWidget
+)
 
+from .Config import CONFIG
 from .Infrastructure import WNode
 from .Utils import kickstart, flip
 from .Utils.Tree import iterPre
 
 KI = Krita.instance()
-ERROR_MSG = 'ERROR: only RGBA & 8bit depth supported!'
-ERROR_TIMEOUT = 8000
-DONE_TIMEOUT = 5000
 
 
-def ensureRGBAU8(doc, statusBar):
+def ensureRGBAU8(doc):
     ensured = doc.colorModel() == 'RGBA' and doc.colorDepth() == 'U8'
     if not ensured:
-        statusBar.showMessage(ERROR_MSG, ERROR_TIMEOUT)
-    return ensured
+        raise ValueError('only RGBA 8-bit depth supported!')
 
 
-def exportAllLayers(statusBar):
-    doc = KI.activeDocument()
-    if not ensureRGBAU8(doc, statusBar):
-        return
+def exportAllLayers(cfg, statusBar):
+    msg, timeout = cfg['done']['msg'].format('Exported all layers.'), cfg['done']['timeout']
+    try:
+        doc = KI.activeDocument()
+        ensureRGBAU8(doc)
 
-    root = doc.rootNode()
-    root = WNode(root)
+        root = doc.rootNode()
+        root = WNode(cfg, root)
 
-    dirname = osp.dirname(doc.fileName())
-    it = filter(lambda n: n.isExportable() and n.isMarked(), iterPre(root))
-    it = map(partial(flip(WNode.save), dirname), it)
-    kickstart(it)
-
-    statusBar.showMessage('Exported all layers.', DONE_TIMEOUT)
-
-
-def exportSelectedLayers(statusBar):
-    doc = KI.activeDocument()
-    if not ensureRGBAU8(doc, statusBar):
-        return
-
-    dirname = osp.dirname(doc.fileName())
-    nodes = KI.activeWindow().activeView().selectedNodes()
-    it = map(WNode, nodes)
-    it = map(partial(flip(WNode.save), dirname), it)
-    kickstart(it)
-
-    statusBar.showMessage('Exported selected layers.', DONE_TIMEOUT)
+        dirName = osp.dirname(doc.fileName())
+        it = filter(lambda n: n.isExportable() and n.isMarked(), iterPre(root))
+        it = map(partial(flip(WNode.save), dirName), it)
+        kickstart(it)
+    except ValueError as e:
+        msg, timeout = cfg['error']['msg'].format(e), cfg['error']['timeout']
+    statusBar.showMessage(msg, timeout)
 
 
-def renameLayers():
-    print('test')
+def exportSelectedLayers(cfg, statusBar):
+    msg, timeout = cfg['done']['msg'].format('Exported selected layers.'), cfg['done']['timeout']
+    try:
+        doc = KI.activeDocument()
+        ensureRGBAU8(doc)
+
+        dirName = osp.dirname(doc.fileName())
+        nodes = KI.activeWindow().activeView().selectedNodes()
+        it = map(partial(WNode, cfg), nodes)
+        it = map(partial(flip(WNode.save), dirName), it)
+        kickstart(it)
+    except ValueError as e:
+        msg, timeout = cfg['error']['msg'].format(e), cfg['error']['timeout']
+    statusBar.showMessage(msg, timeout)
+
+
+def renameLayers(cfg, statusBar, lineEdit):
+    msg, timeout = cfg['done']['msg'].format('Renaming successful!'), cfg['done']['timeout']
+    try:
+        nodes = KI.activeWindow().activeView().selectedNodes()
+        it = map(partial(WNode, cfg), nodes)
+        it = map(partial(flip(WNode.rename), lineEdit.text()), it)
+        kickstart(it)
+    except ValueError as e:
+        msg, timeout = cfg['error']['msg'].format(e), cfg['error']['timeout']
+    statusBar.showMessage(msg, timeout)
 
 
 class GameArtTools(DockWidget):
@@ -76,9 +92,9 @@ class GameArtTools(DockWidget):
         exportLabel = QLabel('Export')
         exportAllLayersButton = QPushButton('All Layers')
         exportSelectedLayersButton = QPushButton('Selected Layers')
-        renameLabel = QLabel('Rename')
+        renameLabel = QLabel('Update Layer Meta/Name')
         renameLineEdit = QLineEdit()
-        renameButton = QPushButton('Rename')
+        renameButton = QPushButton('Update')
         statusBar = QStatusBar()
 
         vboxlayout = QVBoxLayout()
@@ -99,10 +115,19 @@ class GameArtTools(DockWidget):
         uiContainer.setLayout(vboxlayout)
         self.setWidget(uiContainer)
 
-        exportSelectedLayersButton.released.connect(partial(exportSelectedLayers, statusBar))
-        exportAllLayersButton.released.connect(partial(exportAllLayers, statusBar))
-        renameLineEdit.returnPressed.connect(renameLayers)
-        renameButton.released.connect(renameLayers)
+        exportSelectedLayersButton.released.connect(
+            partial(exportSelectedLayers,
+                    CONFIG,
+                    statusBar)
+        )
+        exportAllLayersButton.released.connect(partial(exportAllLayers, CONFIG, statusBar))
+        renameLineEdit.returnPressed.connect(
+            partial(renameLayers,
+                    CONFIG,
+                    statusBar,
+                    renameLineEdit)
+        )
+        renameButton.released.connect(partial(renameLayers, CONFIG, statusBar, renameLineEdit))
 
     def canvasChanged(self, canvas):
         pass
@@ -115,4 +140,3 @@ def registerDocker():
         GameArtTools
     )
     KI.addDockWidgetFactory(docker)
-

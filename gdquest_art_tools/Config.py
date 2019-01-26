@@ -1,10 +1,29 @@
 import re
+from collections import OrderedDict
 
-config = {
+
+CONFIG = {
     'outDir': 'export',
     'rootPat': r'^root',
-    'sym': r'\W'
-}  # yapf: disable
-config['rootPat'] = re.compile(config['rootPat'])
-config['sym'] = re.compile(config['sym'])
-
+    'sym': r'\W',
+    'error': {
+        'msg': 'ERROR: {}',
+        'timeout': 8000
+    },
+    'done': {
+        'msg': 'DONE: {}',
+        'timeout': 5000
+    },
+    'delimiters': OrderedDict(
+        (('assign', '='),
+         ('separator', ','))
+    ),  # yapf: disable
+    'meta': {
+        'e': 'png',
+        'm': [0],
+        'p': [''],
+        's': [100]
+    }
+}
+CONFIG['rootPat'] = re.compile(CONFIG['rootPat'])
+CONFIG['sym'] = re.compile(CONFIG['sym'])
