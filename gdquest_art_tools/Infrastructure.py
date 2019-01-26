@@ -1,10 +1,13 @@
-from itertools import product, starmap
+from collections import OrderedDict
+from functools import partial
+from itertools import groupby, product, starmap, tee
 import os
 import os.path as osp
+import re
 from krita import Krita
 from PIL import Image, ImageOps
 
-from .Utils import kickstart
+from .Utils import kickstart, flip
 from .Utils.Export import sanitize, exportPath
 from .Utils.Tree import pathFS
 
@@ -12,7 +15,8 @@ KI = Krita.instance()
 
 
 class WNode:
-    def __init__(self, node):
+    def __init__(self, cfg, node):
+        self.cfg = cfg
         self.node = node
 
     def __bool__(self):
@@ -20,34 +24,30 @@ class WNode:
 
     @property
     def name(self):
+        a = self.confg['delimiters']['assign']
         name = self.node.name()
         name = name.split()
-        name = filter(lambda n: '=' not in n, name)
+        name = filter(lambda n: a not in n, name)
         name = '_'.join(name)
         return sanitize(name)
 
     @property
     def meta(self):
-        d = '=', ','
-        meta = self.node.name()
-        meta = meta.strip()
-        meta = meta.split()
-        meta = map(lambda m: m.strip(), meta)
-        meta = filter(lambda m: d[0] in m, meta)
-        meta = map(lambda m: m.split(d[0]), meta)
-        meta = {
-            k: (list(map(lambda s: int(s), v.split(d[1]))) if k in 'sm' else v.split(d[1].lower()))
-            for k, v in meta
-        }  # yapf: disable
-        meta.setdefault('e', ['png'])  # extension
-        meta.setdefault('s', [100])  # scale
-        meta.setdefault('m', [0])  # margin
-        meta.setdefault('d', [''])  # path
+        a, s = self.config['delimiters']
+        meta = self.node.name().split(a)
+        meta = starmap(lambda fst, snd: (fst[-1], snd.split()[0]), zip(meta[:-1], meta[1:]))
+        meta = filter(lambda m: m[0] in self.config['meta'].keys(), meta)
+        meta = OrderedDict((k, v.lower().split(s)) for k, v in meta)
+        meta.update({k: map(int, v) for k, v in meta.items() if k in 'ms'})
+        meta.setdefault('e', self.cfg['meta']['e'])  # extension
+        meta.setdefault('m', self.cfg['meta']['m'])  # margin
+        meta.setdefault('p', self.cfg['meta']['p'])  # path
+        meta.setdefault('s', self.cfg['meta']['s'])  # scale
         return meta
 
     @property
     def path(self):
-        return self.meta['d'][0]
+        return self.meta['p'][0]
 
     @property
     def parent(self):
@@ -125,6 +125,35 @@ class WNode:
     def isColorizeMask(self):
         return self.type == 'colorizemask'
 
+    def rename(self, pattern):
+        patterns = pattern.strip().split()
+        a = self.cfg['delimiters']['assign']
+
+        patterns = map(partial(flip(str.split), a), patterns)
+
+        success, patterns = tee(patterns)
+        success = map(lambda p: len(p) == 2, success)
+        if not all(success):
+            raise ValueError('malformed pattern.')
+
+        key = lambda p: p[0] in self.cfg['meta'].keys()
+        patterns = sorted(patterns, key=key)
+        patterns = groupby(patterns, key)
+
+        newName = self.node.name()
+        for k, ps in patterns:
+            for p in ps:
+                how = ('replace' if k is False
+                       else 'add' if p[1] != '' and '{}{}'.format(p[0], a) not in newName
+                       else 'subtract' if p[1] == ''
+                       else 'update')
+                pat = (p if how == 'replace'
+                       else (r'$', r' {}{}{}'.format(p[0], a, p[1])) if how == 'add'
+                       else (r'\s*({}{})[\w,]+\s*'.format(p[0], a),
+                             ' ' if how == 'subtract' else r' \g<1>{} '.format(p[1])))
+                newName = re.sub(pat[0], pat[1], newName).strip()
+        self.node.setName(newName)
+
     def save(self, dirname=''):
         def dataToPIL():
             img = self.node.projectionPixelData(*self.bounds).data()
@@ -132,25 +161,31 @@ class WNode:
             return img
 
         def toJPEG(img):
-            newImg = Image.new('RGBA', img.size, 4 * (255,))
+            newImg = Image.new('RGBA', img.size, 4*(255, ))
             newImg.alpha_composite(img)
             return newImg.convert('RGB')
 
         img = dataToPIL()
-        path, ext, margin, scale = (self.meta['d'][0], self.meta['e'],
-                                    self.meta['m'][0], self.meta['s'])
+        meta = self.meta
+        path, ext, margin, scale = meta['p'][0], meta['e'], meta['m'][0], meta['s']
 
-        dirPath = exportPath(path, dirname) if path else exportPath(pathFS(self.parent), dirname)
+        dirPath = (
+            exportPath(self.cfg,
+                       path,
+                       dirname) if path else exportPath(self.cfg,
+                                                        pathFS(self.parent),
+                                                        dirname)
+        )
         os.makedirs(dirPath, exist_ok=True)
         path = '{}_{}'.format(osp.join(dirPath, self.name), 's{s:03d}.{e}')
 
         it = product(scale, ext)
         it = starmap(lambda s, e: (s, e, path.format(e=e, s=s)), it)
-        it = starmap(lambda s, e, p: ([int(1e-2*wh*s) for wh in self.size], 100 - s != 0, e, p), it)
-        it = starmap(lambda sWH, sDo, e, p: (img.resize(sWH, Image.LANCZOS) if sDo else img,
-                                             e, p), it)
+        it = starmap(lambda s, e, p:
+                     ([int(1e-2*wh*s) for wh in self.size], 100 - s != 0, e, p), it)
+        it = starmap(lambda sWH, sDo, e, p:
+                     (img.resize(sWH, Image.LANCZOS) if sDo else img, e, p), it)
         it = starmap(lambda i, e, p: (ImageOps.expand(i, margin, (255, 255, 255, 0)), e, p), it)
         it = starmap(lambda i, e, p: (toJPEG(i) if e in ('jpg', 'jpeg') else i, p), it)
         it = starmap(lambda i, p: i.save(p), it)
         kickstart(it)
-
