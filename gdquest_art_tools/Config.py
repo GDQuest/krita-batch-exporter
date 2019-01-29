@@ -19,7 +19,7 @@ CONFIG = {
          ('separator', ','))
     ),  # yapf: disable
     'meta': {
-        'e': 'png',
+        'e': ['png'],
         'm': [0],
         'p': [''],
         's': [100]
