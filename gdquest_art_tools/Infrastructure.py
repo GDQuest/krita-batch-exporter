@@ -24,7 +24,7 @@ class WNode:
 
     @property
     def name(self):
-        a = self.confg['delimiters']['assign']
+        a = self.cfg['delimiters']['assign']
         name = self.node.name()
         name = name.split()
         name = filter(lambda n: a not in n, name)
@@ -33,10 +33,10 @@ class WNode:
 
     @property
     def meta(self):
-        a, s = self.config['delimiters']
-        meta = self.node.name().split(a)
+        a, s = self.cfg['delimiters'].values()
+        meta = self.node.name().strip().split(a)
         meta = starmap(lambda fst, snd: (fst[-1], snd.split()[0]), zip(meta[:-1], meta[1:]))
-        meta = filter(lambda m: m[0] in self.config['meta'].keys(), meta)
+        meta = filter(lambda m: m[0] in self.cfg['meta'].keys(), meta)
         meta = OrderedDict((k, v.lower().split(s)) for k, v in meta)
         meta.update({k: map(int, v) for k, v in meta.items() if k in 'ms'})
         meta.setdefault('e', self.cfg['meta']['e'])  # extension
@@ -51,11 +51,11 @@ class WNode:
 
     @property
     def parent(self):
-        return WNode(self.node.parentNode())
+        return WNode(self.cfg, self.node.parentNode())
 
     @property
     def children(self):
-        return [WNode(n) for n in self.node.childNodes()]
+        return [WNode(self.cfg, n) for n in self.node.childNodes()]
 
     @property
     def type(self):
