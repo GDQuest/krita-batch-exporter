@@ -167,7 +167,7 @@ class WNode:
 
         img = dataToPIL()
         meta = self.meta
-        path, ext, margin, scale = meta['p'][0], meta['e'], meta['m'][0], meta['s']
+        path, ext, margin, scale = meta['p'][0], meta['e'], meta['m'], meta['s']
 
         dirPath = (
             exportPath(self.cfg,
@@ -177,15 +177,15 @@ class WNode:
                                                         dirname)
         )
         os.makedirs(dirPath, exist_ok=True)
-        path = '{}_{}'.format(osp.join(dirPath, self.name), 's{s:03d}.{e}')
+        path = '{}_{}'.format(osp.join(dirPath, self.name), 's{s:03d}_m{m:03d}.{e}')
 
-        it = product(scale, ext)
-        it = starmap(lambda s, e: (s, e, path.format(e=e, s=s)), it)
-        it = starmap(lambda s, e, p:
-                     ([int(1e-2*wh*s) for wh in self.size], 100 - s != 0, e, p), it)
-        it = starmap(lambda sWH, sDo, e, p:
-                     (img.resize(sWH, Image.LANCZOS) if sDo else img, e, p), it)
-        it = starmap(lambda i, e, p: (ImageOps.expand(i, margin, (255, 255, 255, 0)), e, p), it)
+        it = product(scale, margin, ext)
+        it = starmap(lambda s, m, e: (s, m, e, path.format(e=e, m=m, s=s)), it)
+        it = starmap(lambda s, m, e, p:
+                     ([int(1e-2*wh*s) for wh in self.size], 100 - s != 0, m, e, p), it)
+        it = starmap(lambda sWH, sDo, m, e, p:
+                     (img.resize(sWH, Image.LANCZOS) if sDo else img, m, e, p), it)
+        it = starmap(lambda i, m, e, p: (ImageOps.expand(i, m, (255, 255, 255, 0)), e, p), it)
         it = starmap(lambda i, e, p: (toJPEG(i) if e in ('jpg', 'jpeg') else i, p), it)
         it = starmap(lambda i, p: i.save(p), it)
         kickstart(it)

@@ -52,11 +52,17 @@ layers become directories and other layers export as files.
 
 Say we have this Krita document structure:
 
-``` GodetteGroupLayer
+```
+GodetteGroupLayer
   +-- HeadGroupLayer
-    +-- Hair +-- Eyes +-- Rest
-  +-- Torso +-- LeftArm +-- RightArm
-Background ```
+    +-- Hair
+    +-- Eyes
+    +-- Rest
+  +-- Torso
+  +-- LeftArm
+  +-- RightArm
+Background
+```
 
 If you want to export `GodetteGroupLayer`, `HeadGroupLayer`, `Torso`, `LeftArm`,
 and `RightArm`, but not the other layers, you can select these layers and write
