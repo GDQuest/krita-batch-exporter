@@ -1,16 +1,60 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html>
+<h3>GDquest Art Tools: Game/Design Art Tools for Krita powered by GDquest</h3>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>GDquest Art Tools</title></head>
-
-<body>
-<h3>Game/Design Art Tools for Krita</h3>
-
-A FREE Krita plugin for designers, game artists, and digital artists to work more productively brought to you by GDquest!
-
-<h3>How to Use</h3>
+<p>FREE Krita plugin for designers, game artists and digital artists to work more productively brought to you by GDquest!</p>
 
 
-</body>
-</html>
+<h4>How to Use</h4>
+
+<p>This plugin helps in two ways:</p>
+
+<ul>
+  <li>it batch exports individual layers to *.jpg or *.png</li>
+  <li>it helps update layer names for fast tweaking of export parameters</li>
+</ul>
+
+
+
+<h4>Batch Export Layers</h4>
+
+<p>With this plugin we can export individual layers to image files based on metadata stored in the layer name. Currently these are the supported metadata options:</p>
+
+<ul>
+  <li><code>[e=jpg,png]</code> - supported export image extensions</li>
+  <li><code>[m=20,30,100]</code> - extra margin in <code>px</code>. The layer is trimmed to the smallest bounding box by default. This option defines extra margin for the layer.</li>
+  <li><code>[s=20,50,100,150]</code> - size in <code>%</code></li>
+  <li><code>[p=path/to/custom/export/directory]</code> - custom output directory, either absolute or relative to the currently opened krita file.</li>
+</ul>
+
+<p>All of these metadata tags are optional, hinted here with <code>[]</code>. They can hold either a single or multiple options, separated by comma <code>,</code>: <code>e=jpg</code> and <code>e=jpg,png</code> are both allowed. So a tipical layer name with metadata will look something like: <code>CharacterTorso e=png m=30 s=40,80</code>. Note that the other tag, <code>p=</code> has been left out. Below we describe how the plugin works.</p>
+
+<p>GDquest Art Tools gives two options to batch export layers: Export All Layers or Export Selected Layers. When we try to Export All Layers, the plugin will only do so for the layers that have been marked by explicitly defining the optional <code>e=extension[s]</code> metadata tag. For example, if the layer name is <code>LeftArm e=png s=50,100</code> then it means it's tagged for export when choosing Export All Layers. If on the other hand the layer name would be <code>LeftArm s=50,100</code> then Export All Layers wouldn't export it, but Export Selected Layers would, if it's selected at the time of the button press.</p>
+
+<p>By default the plugin exports the images in a folder called <code>export</code>, following the same sturcture as the Krita document. This means that within this <code>export</code> folder, the group layers will be directories and regular layers will be files.</p>
+
+
+<p><b>Supported layer types:</b> paint, vector, group &amp; file layers can be exported.</p>
+
+
+<h4>Layer Name Management Utility</h4>
+
+<p>Given that manually adding requred metadata to the layer names is no fun, GDquest Art Tools comes with a layer name management utility.</p>
+
+<p>Say we have this Krita document structure:</p>
+
+<pre>
+  GodetteGroupLayer
+    +-- HeadGroupLayer
+      +-- Hair
+      +-- Eyes
+      +-- Rest
+    +-- Torso
+    +-- LeftArm
+    +-- RightArm
+  Background
+</pre>
+
+<p>If we want to mark <code>GodetteGroupLayer</code>, <code>HeadGroupLayer</code>, <code>Torso</code>, <code>LeftArm</code>, <code>RightArm</code>, but not the other layers we first select these layers and then write in the plugin text box the following: <code>e=png s=40,100</code> and press <kbd>enter</kbd>. In this example I've marked for export the selected layers with <code>e=png</code>, and also added metadata to export at both <code>40%</code> and <code>100%</code> sizes with <code>s=40,100</code>.</p>
+
+<p>Now say we want to change <code>40%</code> to <code>50%</code> because we made a mistake. We'd select the layers once more and write <code>s=50,100</code> in the text box and press <kbd>enter</kbd>. This will update the size metadata specifically, leaving <code>e=png</code> untouched.</p>
+
+<p>But there's more we can do. If for example say we want to remove <code>Layer</code> from the name on <code>GodetteGroupLayer</code> and <code>HeadGroupLayer</code> we select them and write <code>GroupLayer=</code> in the text box. When the pluggin is given an input like <code>this=[that]</code> it will replace <code>this</code> with <code>[that]</code>, where <code>that</code> is optional, that is, if it's left out, the plugin will erase that part of the string. The only exception is for metadata. For example if we want to unmark for export the previous layers, we can write <code>e=</code> which will remove <code>e=png</code> (in this case) entirely. So for example <code>Godetee e=png s=50,100</code> will become <code>Godette s=50,100</code>.</p>
