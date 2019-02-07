@@ -21,9 +21,9 @@ the layer name. The supported options are:
   layer.
 
 A typical layer name with metadata looks like: `CharacterTorso e=png m=30
-s=50,100`. This exports the layer as two images: `CharacterTorso.png`, and
-`CharacterTorso_s050.png`, a copy of the layer scaled down to half the original
-size.
+s=50,100`. This exports the layer as two images, with an added padding of 30 pixels
+on each side: `CharacterTorso_s100_m030.png`, and `CharacterTorso_s050_m030.png`,
+a copy of the layer scaled down to half the original size.
 
 All the metadata tags are optional. Each tag can contain one or multiple options
 separated by comma `,`. Write `e=jpg` to export the layer to `jpg` only and
@@ -75,7 +75,7 @@ the layers once more and write `s=50,100` in the text box. Press
 <kbd>Enter</kbd>. This will update the size tag and leave `e=png` untouched.
 
 The tool can do more than add and update meta tags. If you want to remove
-`Layer` from the name on `GodetteGroupLayer` and `HeadGroupLayer`, select them
+`GroupLayer` from the name on `GodetteGroupLayer` and `HeadGroupLayer`, select them
 and write `GroupLayer=` in the text box. Press <kbd>Enter</kbd> and the
 `GroupLayer` text will disappear from the selected layers.
 
