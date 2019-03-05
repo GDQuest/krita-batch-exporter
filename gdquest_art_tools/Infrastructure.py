@@ -39,6 +39,7 @@ class WNode:
         meta = filter(lambda m: m[0] in self.cfg['meta'].keys(), meta)
         meta = OrderedDict((k, v.lower().split(s)) for k, v in meta)
         meta.update({k: map(int, v) for k, v in meta.items() if k in 'ms'})
+        meta.setdefault('c', self.cfg['meta']['c']) # coa_tools
         meta.setdefault('e', self.cfg['meta']['e'])  # extension
         meta.setdefault('m', self.cfg['meta']['m'])  # margin
         meta.setdefault('p', self.cfg['meta']['p'])  # path
@@ -189,3 +190,5 @@ class WNode:
         it = starmap(lambda i, e, p: (toJPEG(i) if e in ('jpg', 'jpeg') else i, p), it)
         it = starmap(lambda i, p: i.save(p), it)
         kickstart(it)
+
+        return path.format(e=ext[0], m=margin[0], s=scale[0])

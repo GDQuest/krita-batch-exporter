@@ -11,7 +11,8 @@ Get started with the add-on and the batch export tools: https://youtu.be/jJE5iqE
 Updated the plugin's built-in documentation. See [Manual.md](https://github.com/GDquest/GDquest-art-tools/blob/master/gdquest_art_tools/Manual.md)
 
 ### 🎥🕺 New features ###
-
+- **COA Tools export** basic support for exporting to coa_tools
+  - Export multiple layers to [coa_tools](https://github.com/ndee85/coa_tools) format
 - **Batch export all layers in the background** based on metadata in their name
   - Scale images on export
   - Add an empty margin to images

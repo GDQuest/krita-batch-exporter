@@ -86,3 +86,10 @@ erase the text you searched for.
 The rename tool is smarter with meta tags. Writing `e=` will remove the
 extension tag entirely. For example, `Godete e=png s=50,100` will become
 `Godette s=50,100`.
+
+## COA Tools format
+
+You can select multiple group layers anywhere in the document and export their
+contents and generate the necessary metadata file for easy import in
+COA Tools / Blender. Right now the exporter is not able to generate
+spritesheets for use with switching e.g. mouth states.
