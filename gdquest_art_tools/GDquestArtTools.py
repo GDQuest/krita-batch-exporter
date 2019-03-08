@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QHBoxLayout,
     QVBoxLayout,
+    QGroupBox,
     QWidget
 )
 
@@ -65,8 +66,8 @@ def exportSelectedLayers(cfg, statusBar):
         msg, timeout = cfg['error']['msg'].format(e), cfg['error']['timeout']
     statusBar.showMessage(msg, timeout)
 
-def exportCOATools(cfg, statusBar):
-    msg, timeout = cfg['done']['msg'].format('Exported selected layers.'), cfg['done']['timeout']
+def exportCOATools(mode, cfg, statusBar):
+    msg, timeout = cfg['done']['msg'].format('Exported %s layers to COA Tools format.' % (mode)), cfg['done']['timeout']
     try:
         doc = KI.activeDocument()
         ensureRGBAU8(doc)
@@ -75,6 +76,10 @@ def exportCOATools(cfg, statusBar):
         dirName = osp.dirname(doc.fileName())
         nodes = KI.activeWindow().activeView().selectedNodes()
 
+        # If no nodes are selected, use document root
+        if mode == "document" or len(nodes) == 0:
+            nodes = [doc.rootNode()]
+
         # By convention all selected nodes should be Group Layers
         for n in nodes:
             wn = WNode(cfg, n)
@@ -82,7 +87,7 @@ def exportCOATools(cfg, statusBar):
                 raise ValueError(wn.name,'is not a Group Layer')
 
         it = map(partial(WNode, cfg), nodes)
-        it = map(lambda n: coat_format.collect(n), it)
+        it = map(coat_format.collect, it)
         kickstart(it)
         coat_format.save(dirName)
     except ValueError as e:
@@ -117,17 +122,28 @@ class GameArtTools(DockWidget):
         exportLabel = QLabel('Export')
         exportAllLayersButton = QPushButton('All Layers')
         exportSelectedLayersButton = QPushButton('Selected Layers')
-        exportSelectedCOAToolsLayersButton = QPushButton('Selected as coa_tools')
         renameLabel = QLabel('Update Layer Meta/Name')
         renameLineEdit = QLineEdit()
         renameButton = QPushButton('Update')
         statusBar = QStatusBar()
 
+        # COA Tools GroupBox
+        coaToolsGroupBox = QGroupBox("COA Tools")
+        coaToolsHBoxLayout = QHBoxLayout()
+        coaToolsExportSelectedLayersButton = QPushButton('Selected Layers')
+        coaToolsExportDocumentButton = QPushButton('Document')
+
+        coaToolsHBoxLayout.addWidget(coaToolsExportDocumentButton)
+        coaToolsHBoxLayout.addWidget(coaToolsExportSelectedLayersButton)
+        coaToolsGroupBox.setLayout(coaToolsHBoxLayout)
+
+
         vboxlayout = QVBoxLayout()
         vboxlayout.addWidget(exportLabel)
         vboxlayout.addWidget(exportAllLayersButton)
         vboxlayout.addWidget(exportSelectedLayersButton)
-        vboxlayout.addWidget(exportSelectedCOAToolsLayersButton)
+
+        vboxlayout.addWidget(coaToolsGroupBox)
         vboxlayout.addWidget(renameLabel)
         vboxlayout.addWidget(renameLineEdit)
 
@@ -148,7 +164,8 @@ class GameArtTools(DockWidget):
                     statusBar)
         )
         exportAllLayersButton.released.connect(partial(exportAllLayers, CONFIG, statusBar))
-        exportSelectedCOAToolsLayersButton.released.connect(partial(exportCOATools, CONFIG, statusBar))
+        coaToolsExportSelectedLayersButton.released.connect(partial(exportCOATools, 'selected', CONFIG, statusBar))
+        coaToolsExportDocumentButton.released.connect(partial(exportCOATools, 'document', CONFIG, statusBar))
         renameLineEdit.returnPressed.connect(
             partial(renameLayers,
                     CONFIG,
