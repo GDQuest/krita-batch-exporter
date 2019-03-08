@@ -89,7 +89,36 @@ extension tag entirely. For example, `Godete e=png s=50,100` will become
 
 ## COA Tools format
 
-You can select multiple group layers anywhere in the document and export their
-contents and generate the necessary metadata file for easy import in
-COA Tools / Blender. Right now the exporter is not able to generate
+The exporter will generate the necessary sprite contents and metadata file for
+easy import in COA Tools / Blender.
+
+Right now the exporter is *not* able to generate
 spritesheets for use with switching e.g. mouth states.
+
+If you want to export your krita document to COA Tools format,
+simply have no layers selected and click the `As COA Tools` button.
+
+If you want to export multiple COA Tool documents from one Krita document
+(if you have e.g. multiple characters in one Krita document),
+you can do so by selecting a Group Layer to serve as root for each COA Tool export
+you want done.
+
+### Example
+You want to export two characters from the same Krita document in one go
+```
+Root
+  +-- Robot (Group Layer)       <-- Select this layer
+  |    +-- Head
+  |    +-- Body
+  |    +-- Legs
+  |
+  +-- Sketches
+  |    +-- ...
+  |
+  +-- Minion (Group Layer)      <-- ... and this layer
+  |    +-- Hat
+  |    +-- Head
+  |
+  Background
+```
+Once the Group Layers are selected you push "As COA Tools".
