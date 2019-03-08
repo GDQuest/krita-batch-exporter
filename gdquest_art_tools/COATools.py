@@ -34,11 +34,15 @@ class COAToolsFormat:
     def save(self, output_dir=''):
         # For each top-level node (Group Layer)
         cfg = self.cfg
+        export_dir = output_dir
         for wn in self.nodes:
             meta = wn.meta
             children = wn.children
+            path = wn.path
 
-            os.makedirs(output_dir, exist_ok=True)
+            if path != '':
+                export_dir = path
+
             print("COAToolsFormat exporting %d items from %s" % ( len(children), wn.name ) )
 
             # TODO handle c=sheet cases from `meta['c']` and generate multi-sprite bitmaps for 'switch layers' as the GIMP exporter does
@@ -50,9 +54,9 @@ class COAToolsFormat:
                     raise ValueError(wn.name,'has no children to export')
 
                 coa_data = { 'name': wn.name, 'nodes': [] }
-                print("COAToolsFormat exporting %s meta: (%s) to %s" % ( wn.name, meta['c'], output_dir ) )
+                print("COAToolsFormat exporting %s meta: (%s) to %s" % ( wn.name, meta['c'], export_dir ) )
                 for idx, child in enumerate(children):
-                    fn = child.save(output_dir)
+                    fn = child.save(export_dir)
 
                     node = child.node
                     coords = node.bounds().getCoords()
@@ -73,7 +77,7 @@ class COAToolsFormat:
                         "opacity": self.remap(node.opacity(),0,255,0,1),
                         "pivot_offset": [ 0.0, 0.0 ],
                         "position": relative_coords,
-                        "resource_path": fn.replace(output_dir+os.path.sep+cfg['outDir']+os.path.sep,''),
+                        "resource_path": fn.replace(export_dir+os.path.sep+cfg['outDir']+os.path.sep,''),
                         "rotation": 0.0,
                         "scale": [ 1.0, 1.0 ],
                         "tiles_x": 1,
@@ -84,7 +88,7 @@ class COAToolsFormat:
                     coa_data['nodes'].append(coa_entry)
 
                 json_data = json.dumps(coa_data, sort_keys=True, indent=4, separators=(',', ': '))
-                with open(output_dir+os.path.sep+cfg['outDir']+os.path.sep+wn.name+".json", "w") as fh:
+                with open(export_dir+os.path.sep+cfg['outDir']+os.path.sep+wn.name+".json", "w") as fh:
                     fh.write(json_data)
             except ValueError as e:
                 showError(e)
