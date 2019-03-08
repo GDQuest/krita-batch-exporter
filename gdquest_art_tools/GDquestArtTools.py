@@ -76,17 +76,13 @@ def exportCOATools(mode, cfg, statusBar):
         dirName = osp.dirname(doc.fileName())
         nodes = KI.activeWindow().activeView().selectedNodes()
 
-        # If no nodes are selected, use document root
+        # If mode is document or no nodes are selected, use document root
         if mode == "document" or len(nodes) == 0:
             nodes = [doc.rootNode()]
 
-        # By convention all selected nodes should be Group Layers
-        for n in nodes:
-            wn = WNode(cfg, n)
-            if not wn.isGroupLayer():
-                raise ValueError(wn.name,'is not a Group Layer')
-
         it = map(partial(WNode, cfg), nodes)
+        # By convention all selected nodes should be Group Layers
+        it = filter(lambda n: n.isGroupLayer(), it)
         it = map(coat_format.collect, it)
         kickstart(it)
         coat_format.save(dirName)
