@@ -9,8 +9,6 @@ from .Utils.Tree import iterPre
 from krita import Krita
 from PIL import Image, ImageOps
 
-KI = Krita.instance()
-
 class COAToolsFormat:
     def __init__(self, cfg, statusBar):
         self.cfg = cfg
@@ -37,14 +35,15 @@ class COAToolsFormat:
         # For each top-level node (Group Layer)
         cfg = self.cfg
         for wn in self.nodes:
-            knode = wn.node
             meta = wn.meta
             children = wn.children
 
             os.makedirs(output_dir, exist_ok=True)
             print("COAToolsFormat exporting %d items from %s" % ( len(children), wn.name ) )
 
-            # TODO handle c=sheet cases and generate multi-sprite bitmaps for 'switch layers' as the GIMP exporter does
+            # TODO handle c=sheet cases from `meta['c']` and generate multi-sprite bitmaps for 'switch layers' as the GIMP exporter does
+            # if meta['c'] == "sheet":
+            #   self.generateSpritesheet(wn)
 
             try:
                 if len(children) <= 0:
