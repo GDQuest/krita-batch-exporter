@@ -96,7 +96,7 @@ Right now the exporter is *not* able to generate
 spritesheets for use with switching e.g. mouth states.
 
 If you want to export your krita document to COA Tools format,
-simply have no layers selected and click the `As COA Tools` button.
+simply have no layers selected and click the `Document` button under COA Tools.
 
 If you want to export multiple COA Tool documents from one Krita document
 (if you have e.g. multiple characters in one Krita document),
