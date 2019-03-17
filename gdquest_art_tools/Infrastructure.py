@@ -191,4 +191,13 @@ class WNode:
         it = starmap(lambda i, p: i.save(p), it)
         kickstart(it)
 
+        ext = list(ext) if ext else []
+        if len(ext) == 0:
+            ext.append(self.cfg['meta']['e'][0])
+        margin = list(margin) if margin else []
+        if len(margin) == 0:
+            margin.append(self.cfg['meta']['m'][0])
+        scale = list(scale) if scale else []
+        if len(scale) == 0:
+            scale.append(self.cfg['meta']['s'][0])
         return path.format(e=ext[0], m=margin[0], s=scale[0])
