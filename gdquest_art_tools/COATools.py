@@ -56,7 +56,7 @@ class COAToolsFormat:
                 coa_data = { 'name': wn.name, 'nodes': [] }
                 print("COAToolsFormat exporting %s meta: (%s) to %s" % ( wn.name, meta['c'], export_dir ) )
                 for idx, child in enumerate(children):
-                    fn = child.save(export_dir)
+                    fn = child.saveCOA(export_dir)
 
                     node = child.node
                     coords = node.bounds().getCoords()
@@ -90,5 +90,6 @@ class COAToolsFormat:
                 json_data = json.dumps(coa_data, sort_keys=True, indent=4, separators=(',', ': '))
                 with open(export_dir+os.path.sep+cfg['outDir']+os.path.sep+wn.name+".json", "w") as fh:
                     fh.write(json_data)
+
             except ValueError as e:
                 showError(e)

@@ -82,10 +82,12 @@ def exportCOATools(mode, cfg, statusBar):
 
         it = map(partial(WNode, cfg), nodes)
         # By convention all selected nodes should be Group Layers
+        # This is to represent a logical root for each export in COATools format
         it = filter(lambda n: n.isGroupLayer(), it)
         it = map(coat_format.collect, it)
         kickstart(it)
         coat_format.save(dirName)
+
     except ValueError as e:
         msg, timeout = cfg['error']['msg'].format(e), cfg['error']['timeout']
     statusBar.showMessage(msg, timeout)
