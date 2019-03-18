@@ -121,4 +121,11 @@ Root
   |
   Background
 ```
-Once the Group Layers are selected you push "As COA Tools".
+Once the Group Layers are selected you push "COA Tools -> Selected Layers".
+
+Each export root supports the following metadata:
+- `[p=path/to/custom/export/directory]` - custom output path.
+    Paths can be absolute or relative to the Krita document.
+
+Each child node of an export root supports the following metadata:
+- `[e=jpg,png]` - supported export image extensions
