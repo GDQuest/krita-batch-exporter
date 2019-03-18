@@ -92,13 +92,10 @@ extension tag entirely. For example, `Godete e=png s=50,100` will become
 The exporter will generate the necessary sprite contents and metadata file for
 easy import in COA Tools / Blender.
 
-Right now the exporter is *not* able to generate
-spritesheets for use with switching e.g. mouth states.
-
 If you want to export your krita document to COA Tools format,
-simply have no layers selected and click the `Document` button under COA Tools.
+simply click the `Document` button under COA Tools.
 
-If you want to export multiple COA Tool documents from one Krita document
+If you want to export multiple or specific COA Tool documents from one Krita document
 (if you have e.g. multiple characters in one Krita document),
 you can do so by selecting a Group Layer to serve as root for each COA Tool export
 you want done.
@@ -129,3 +126,26 @@ Each export root supports the following metadata:
 
 Each child node of an export root supports the following metadata:
 - `[e=jpg,png]` - supported export image extensions
+
+Generating frames to a sprite sheet from a Group Layer is also possible.
+Simply mark the layer containing each frame you want in the sheet with a
+`c=sheet` and each child layer will act as one frame you can switch when
+Working with COA Tools in Blender.
+
+### Example
+You want to export a character from the document, and be
+able to switch between each state of e.g. the mouth:
+```
+Root
+  +-- Robot (Group Layer)         <-- If this is the export root
+  |    +-- Mouth States c=sheet   <-- ... mark this layer
+  |    |    +-- Open
+  |    |    +-- Half Open
+  |    |    +-- Closed
+  |    |
+  |    +-- Head
+  |    +-- Body
+  |    +-- Legs
+  |
+  Background
+```
