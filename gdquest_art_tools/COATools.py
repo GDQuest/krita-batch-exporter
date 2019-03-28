@@ -95,4 +95,4 @@ class COAToolsFormat:
                     fh.write(json_data)
 
             except ValueError as e:
-                showError(e)
+                self.showError(e)

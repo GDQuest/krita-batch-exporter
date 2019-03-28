@@ -14,6 +14,18 @@ from .Utils.Tree import pathFS
 KI = Krita.instance()
 
 
+def dataToPIL(wnode):
+    img = wnode.node.projectionPixelData(*wnode.bounds).data()
+    img = Image.frombytes('RGBA', wnode.size, img, 'raw', 'BGRA', 0, 1)
+    return img
+
+
+def toJPEG(img):
+    newImg = Image.new('RGBA', img.size, 4*(255, ))
+    newImg.alpha_composite(img)
+    return newImg.convert('RGB')
+
+
 class WNode:
     def __init__(self, cfg, node):
         self.cfg = cfg
@@ -165,17 +177,7 @@ class WNode:
         self.node.setName(newName)
 
     def save(self, dirname=''):
-        def dataToPIL():
-            img = self.node.projectionPixelData(*self.bounds).data()
-            img = Image.frombytes('RGBA', self.size, img, 'raw', 'BGRA', 0, 1)
-            return img
-
-        def toJPEG(img):
-            newImg = Image.new('RGBA', img.size, 4*(255, ))
-            newImg.alpha_composite(img)
-            return newImg.convert('RGB')
-
-        img = dataToPIL()
+        img = dataToPIL(self)
         meta = self.meta
         path, ext, margin, scale = meta['p'][0], meta['e'], meta['m'], meta['s']
 
@@ -201,17 +203,7 @@ class WNode:
         kickstart(it)
 
     def saveCOA(self, dirname=''):
-        def dataToPIL():
-            img = self.node.projectionPixelData(*self.bounds).data()
-            img = Image.frombytes('RGBA', self.size, img, 'raw', 'BGRA', 0, 1)
-            return img
-
-        def toJPEG(img):
-            newImg = Image.new('RGBA', img.size, 4*(255, ))
-            newImg.alpha_composite(img)
-            return newImg.convert('RGB')
-
-        img = dataToPIL()
+        img = dataToPIL(self)
         meta = self.meta
         path, ext = '', meta['e']
 
@@ -234,16 +226,6 @@ class WNode:
     def saveCOASpriteSheet(self, dirname=''):
         # Generate a vertical sheet of equaly sized frames
         # Each child of self is pasted to a master sheet
-        def dataToPIL(wnode):
-            img = wnode.node.projectionPixelData(*wnode.bounds).data()
-            img = Image.frombytes('RGBA', wnode.size, img, 'raw', 'BGRA', 0, 1)
-            return img
-
-        def toJPEG(img):
-            newImg = Image.new('RGBA', img.size, 4*(255, ))
-            newImg.alpha_composite(img)
-            return newImg.convert('RGB')
-
         images = self.children
         tiles_x, tiles_y = 1, len(images) # Length of vertical sheet
         image_width, image_height = self.size # Target frame size
