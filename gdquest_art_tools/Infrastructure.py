@@ -38,7 +38,7 @@ class WNode:
         meta = starmap(lambda fst, snd: (fst[-1], snd.split()[0]), zip(meta[:-1], meta[1:]))
         meta = filter(lambda m: m[0] in self.cfg['meta'].keys(), meta)
         meta = OrderedDict((k, v.lower().split(s)) for k, v in meta)
-        meta.update({k: map(int, v) for k, v in meta.items() if k in 'ms'})
+        meta.update({k: list(map(int, v)) for k, v in meta.items() if k in 'ms'})
         meta.setdefault('c', self.cfg['meta']['c'])  # coa_tools
         meta.setdefault('e', self.cfg['meta']['e'])  # extension
         meta.setdefault('m', self.cfg['meta']['m'])  # margin
@@ -191,4 +191,34 @@ class WNode:
         it = starmap(lambda i, p: i.save(p), it)
         kickstart(it)
 
-        return path.format(e=ext[0], m=margin[0], s=scale[0])
+
+    def saveCOA(self, dirname=''):
+        def dataToPIL():
+            img = self.node.projectionPixelData(*self.bounds).data()
+            img = Image.frombytes('RGBA', self.size, img, 'raw', 'BGRA', 0, 1)
+            return img
+
+        def toJPEG(img):
+            newImg = Image.new('RGBA', img.size, 4*(255, ))
+            newImg.alpha_composite(img)
+            return newImg.convert('RGB')
+
+        img = dataToPIL()
+        meta = self.meta
+        path, ext = '', meta['e']
+
+        dirPath = (
+            exportPath(self.cfg,
+                       path,
+                       dirname) if path else exportPath(self.cfg,
+                                                        pathFS(self.parent),
+                                                        dirname)
+        )
+        os.makedirs(dirPath, exist_ok=True)
+        path = '{}{}'.format(osp.join(dirPath, self.name), '.{e}')
+        path = path.format(e=ext[0])
+        if ext in ('jpg', 'jpeg'):
+            toJPEG(img)
+        img.save(path)
+
+        return path
