@@ -36,7 +36,6 @@ class COAToolsFormat:
         cfg = self.cfg
         export_dir = output_dir
         for wn in self.nodes:
-            meta = wn.meta
             children = wn.children
             path = wn.path
 
@@ -44,19 +43,18 @@ class COAToolsFormat:
                 export_dir = path
 
             print("COAToolsFormat exporting %d items from %s" % ( len(children), wn.name ) )
-
-            # TODO handle c=sheet cases from `meta['c']` and generate multi-sprite bitmaps for 'switch layers' as the GIMP exporter does
-            # if meta['c'] == "sheet":
-            #   self.generateSpritesheet(wn)
-
             try:
                 if len(children) <= 0:
                     raise ValueError(wn.name,'has no children to export')
 
                 coa_data = { 'name': wn.name, 'nodes': [] }
-                print("COAToolsFormat exporting %s meta: (%s) to %s" % ( wn.name, meta['c'], export_dir ) )
+                print("COAToolsFormat exporting %s to %s" % ( wn.name, export_dir ) )
                 for idx, child in enumerate(children):
-                    fn = child.saveCOA(export_dir)
+                    sheet_meta = dict()
+                    if child.coa != '':
+                        fn, sheet_meta = child.saveCOASpriteSheet(export_dir)
+                    else:
+                        fn = child.saveCOA(export_dir)
 
                     node = child.node
                     coords = node.bounds().getCoords()
@@ -68,6 +66,11 @@ class COAToolsFormat:
 
                     p_width = parent_coords[2]-parent_coords[0]
                     p_height = parent_coords[3]-parent_coords[1]
+
+                    tiles_x, tiles_y = 1, 1
+                    if len(sheet_meta) > 0:
+                        tiles_x, tiles_y = sheet_meta['tiles_x'], sheet_meta['tiles_y']
+
                     coa_entry = {
                         "children": [],
                         "frame_index": 0,
@@ -80,8 +83,8 @@ class COAToolsFormat:
                         "resource_path": fn.replace(export_dir+os.path.sep+cfg['outDir']+os.path.sep,''),
                         "rotation": 0.0,
                         "scale": [ 1.0, 1.0 ],
-                        "tiles_x": 1,
-                        "tiles_y": 1,
+                        "tiles_x": tiles_x,
+                        "tiles_y": tiles_y,
                         "type": "SPRITE",
                         "z": idx-len(children)+1
                         }

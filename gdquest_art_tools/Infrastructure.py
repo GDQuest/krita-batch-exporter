@@ -51,6 +51,10 @@ class WNode:
         return self.meta['p'][0]
 
     @property
+    def coa(self):
+        return self.meta['c'][0]
+
+    @property
     def parent(self):
         return WNode(self.cfg, self.node.parentNode())
 
@@ -61,6 +65,11 @@ class WNode:
     @property
     def type(self):
         return self.node.type()
+
+    @property
+    def position(self):
+        bounds = self.node.bounds()
+        return bounds.x(), bounds.y()
 
     @property
     def bounds(self):
@@ -191,7 +200,6 @@ class WNode:
         it = starmap(lambda i, p: i.save(p), it)
         kickstart(it)
 
-
     def saveCOA(self, dirname=''):
         def dataToPIL():
             img = self.node.projectionPixelData(*self.bounds).data()
@@ -222,3 +230,52 @@ class WNode:
         img.save(path)
 
         return path
+
+    def saveCOASpriteSheet(self, dirname=''):
+        # Generate a vertical sheet of equaly sized frames
+        # Each child of self is pasted to a master sheet
+        def dataToPIL(wnode):
+            img = wnode.node.projectionPixelData(*wnode.bounds).data()
+            img = Image.frombytes('RGBA', wnode.size, img, 'raw', 'BGRA', 0, 1)
+            return img
+
+        def toJPEG(img):
+            newImg = Image.new('RGBA', img.size, 4*(255, ))
+            newImg.alpha_composite(img)
+            return newImg.convert('RGB')
+
+        images = self.children
+        tiles_x, tiles_y = 1, len(images) # Length of vertical sheet
+        image_width, image_height = self.size # Target frame size
+        sheet_width, sheet_height = image_width, image_height * tiles_y # Sheet dimensions
+
+        sheet = Image.new(
+            mode='RGBA',
+            size=(sheet_width, sheet_height),
+            color=(0,0,0,0))  # fully transparent
+
+        p_coord_x, p_coord_y = self.position
+        for count, image in enumerate(images):
+            coord_x, coord_y = image.position
+            coord_rel_x, coord_rel_y = coord_x-p_coord_x, coord_y-p_coord_y
+
+            sheet.paste(dataToPIL(image),(coord_rel_x, image_height*count+coord_rel_y))
+
+        meta = self.meta
+        path, ext = '', meta['e']
+
+        dirPath = (
+            exportPath(self.cfg,
+                       path,
+                       dirname) if path else exportPath(self.cfg,
+                                                        pathFS(self.parent),
+                                                        dirname)
+        )
+        os.makedirs(dirPath, exist_ok=True)
+        path = '{}{}'.format(osp.join(dirPath, self.name), '.{e}')
+        path = path.format(e=ext[0])
+        if ext in ('jpg', 'jpeg'):
+            toJPEG(sheet)
+        sheet.save(path)
+
+        return path, { 'tiles_x': tiles_x, 'tiles_y': tiles_y }
