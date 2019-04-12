@@ -92,7 +92,7 @@ class COAToolsFormat:
                     coa_data['nodes'].append(coa_entry)
 
                 json_data = json.dumps(coa_data, sort_keys=True, indent=4, separators=(',', ': '))
-                with open(xport_dir + os.path.sep + cfg['outDir'] + os.path.sep + wn.name + ".json", "w") as fh:
+                with open(export_dir + os.path.sep + cfg['outDir'] + os.path.sep + wn.name + ".json", "w") as fh:
                     fh.write(json_data)
 
             except ValueError as e:
