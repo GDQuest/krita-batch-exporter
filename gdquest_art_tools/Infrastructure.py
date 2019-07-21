@@ -21,12 +21,18 @@ def dataToPIL(wnode):
 
 
 def toJPEG(img):
-    newImg = Image.new('RGBA', img.size, 4*(255, ))
+    newImg = Image.new('RGBA', img.size, 4 * (255, ))
     newImg.alpha_composite(img)
     return newImg.convert('RGB')
 
 
 class WNode:
+    """
+    Wrapper around Krita's Node class, that represents a layer.
+    Adds support for export metadata and methods to export the layer
+    based on its metadata.
+    See the meta property for a list of supported metadata.
+    """
     def __init__(self, cfg, node):
         self.cfg = cfg
         self.node = node
@@ -47,10 +53,13 @@ class WNode:
     def meta(self):
         a, s = self.cfg['delimiters'].values()
         meta = self.node.name().strip().split(a)
-        meta = starmap(lambda fst, snd: (fst[-1], snd.split()[0]), zip(meta[:-1], meta[1:]))
+        meta = starmap(lambda fst, snd: (fst[-1], snd.split()[0]),
+                       zip(meta[:-1], meta[1:]))
         meta = filter(lambda m: m[0] in self.cfg['meta'].keys(), meta)
         meta = OrderedDict((k, v.lower().split(s)) for k, v in meta)
-        meta.update({k: list(map(int, v)) for k, v in meta.items() if k in 'ms'})
+        meta.update(
+            {k: list(map(int, v))
+             for k, v in meta.items() if k in 'ms'})
         meta.setdefault('c', self.cfg['meta']['c'])  # coa_tools
         meta.setdefault('e', self.cfg['meta']['e'])  # extension
         meta.setdefault('m', self.cfg['meta']['m'])  # margin
@@ -148,6 +157,13 @@ class WNode:
         return self.type == 'colorizemask'
 
     def rename(self, pattern):
+        """
+        Renames the layer, scanning for patterns in the user's input trying to preserve metadata.
+        Patterns have the form meta_name=value,
+        E.g. s=50,100 to tell the tool to export two copies of the layer at 50% and 100% of its size
+        This function will only replace or update corresponding metadata.
+        If the rename string starts with a name, the layer's name will change to that.
+        """
         patterns = pattern.strip().split()
         a = self.cfg['delimiters']['assign']
 
@@ -165,99 +181,95 @@ class WNode:
         newName = self.node.name()
         for k, ps in patterns:
             for p in ps:
-                how = ('replace' if k is False
-                       else 'add' if p[1] != '' and '{}{}'.format(p[0], a) not in newName
-                       else 'subtract' if p[1] == ''
-                       else 'update')
-                pat = (p if how == 'replace'
-                       else (r'$', r' {}{}{}'.format(p[0], a, p[1])) if how == 'add'
-                       else (r'\s*({}{})[\w,]+\s*'.format(p[0], a),
-                             ' ' if how == 'subtract' else r' \g<1>{} '.format(p[1])))
+                how = ('replace' if k is False else 'add'
+                       if p[1] != '' and '{}{}'.format(p[0], a) not in newName
+                       else 'subtract' if p[1] == '' else 'update')
+                pat = (
+                    p if how == 'replace' else
+                    (r'$',
+                     r' {}{}{}'.format(p[0], a, p[1])) if how == 'add' else
+                    (r'\s*({}{})[\w,]+\s*'.format(p[0], a),
+                     ' ' if how == 'subtract' else r' \g<1>{} '.format(p[1])))
                 newName = re.sub(pat[0], pat[1], newName).strip()
         self.node.setName(newName)
 
     def save(self, dirname=''):
         img = dataToPIL(self)
         meta = self.meta
-        path, ext, margin, scale = meta['p'][0], meta['e'], meta['m'], meta['s']
+        path, extension, margin, scale = meta['p'][0], meta['e'], meta[
+            'm'], meta['s']
 
-        dirPath = (
-            exportPath(self.cfg,
-                       path,
-                       dirname) if path else exportPath(self.cfg,
-                                                        pathFS(self.parent),
-                                                        dirname)
-        )
+        dirPath = (exportPath(self.cfg, path, dirname) if path else exportPath(
+            self.cfg, pathFS(self.parent), dirname))
         os.makedirs(dirPath, exist_ok=True)
-        path = '{}_{}'.format(osp.join(dirPath, self.name), 's{s:03d}_m{m:03d}.{e}')
+        path = '{}_{}'.format(osp.join(dirPath, self.name),
+                              's{s:03d}_m{m:03d}.{e}')
 
-        it = product(scale, margin, ext)
+        it = product(scale, margin, extension)
         it = starmap(lambda s, m, e: (s, m, e, path.format(e=e, m=m, s=s)), it)
-        it = starmap(lambda s, m, e, p:
-                     ([int(1e-2*wh*s) for wh in self.size], 100 - s != 0, m, e, p), it)
-        it = starmap(lambda sWH, sDo, m, e, p:
-                     (img.resize(sWH, Image.LANCZOS) if sDo else img, m, e, p), it)
-        it = starmap(lambda i, m, e, p: (ImageOps.expand(i, m, (255, 255, 255, 0)), e, p), it)
-        it = starmap(lambda i, e, p: (toJPEG(i) if e in ('jpg', 'jpeg') else i, p), it)
+        it = starmap(
+            lambda s, m, e, p:
+            ([int(1e-2 * wh * s) for wh in self.size], 100 - s != 0, m, e, p),
+            it)
+        it = starmap(
+            lambda sWH, sDo, m, e, p: (img.resize(sWH, Image.LANCZOS)
+                                       if sDo else img, m, e, p), it)
+        it = starmap(
+            lambda i, m, e, p: (ImageOps.expand(i, m,
+                                                (255, 255, 255, 0)), e, p), it)
+        it = starmap(
+            lambda i, e, p: (toJPEG(i) if e in ('jpg', 'jpeg') else i, p), it)
         it = starmap(lambda i, p: i.save(p), it)
         kickstart(it)
 
     def saveCOA(self, dirname=''):
         img = dataToPIL(self)
         meta = self.meta
-        path, ext = '', meta['e']
+        path, extension = '', meta['e']
 
-        dirPath = (
-            exportPath(self.cfg,
-                       path,
-                       dirname) if path else exportPath(self.cfg,
-                                                        pathFS(self.parent),
-                                                        dirname)
-        )
+        dirPath = (exportPath(self.cfg, path, dirname) if path else exportPath(
+            self.cfg, pathFS(self.parent), dirname))
         os.makedirs(dirPath, exist_ok=True)
         path = '{}{}'.format(osp.join(dirPath, self.name), '.{e}')
-        path = path.format(e=ext[0])
-        if ext in ('jpg', 'jpeg'):
+        path = path.format(e=extension[0])
+        if extension in ('jpg', 'jpeg'):
             toJPEG(img)
         img.save(path)
 
         return path
 
     def saveCOASpriteSheet(self, dirname=''):
-        # Generate a vertical sheet of equaly sized frames
-        # Each child of self is pasted to a master sheet
+        """
+        Generate a vertical sheet of equaly sized frames
+        Each child of self is pasted to a master sheet
+        """
         images = self.children
-        tiles_x, tiles_y = 1, len(images) # Length of vertical sheet
-        image_width, image_height = self.size # Target frame size
-        sheet_width, sheet_height = image_width, image_height * tiles_y # Sheet dimensions
+        tiles_x, tiles_y = 1, len(images)  # Length of vertical sheet
+        image_width, image_height = self.size  # Target frame size
+        sheet_width, sheet_height = image_width, image_height * tiles_y  # Sheet dimensions
 
-        sheet = Image.new(
-            mode='RGBA',
-            size=(sheet_width, sheet_height),
-            color=(0,0,0,0))  # fully transparent
+        sheet = Image.new(mode='RGBA',
+                          size=(sheet_width, sheet_height),
+                          color=(0, 0, 0, 0))  # fully transparent
 
         p_coord_x, p_coord_y = self.position
         for count, image in enumerate(images):
             coord_x, coord_y = image.position
-            coord_rel_x, coord_rel_y = coord_x-p_coord_x, coord_y-p_coord_y
+            coord_rel_x, coord_rel_y = coord_x - p_coord_x, coord_y - p_coord_y
 
-            sheet.paste(dataToPIL(image),(coord_rel_x, image_height*count+coord_rel_y))
+            sheet.paste(dataToPIL(image),
+                        (coord_rel_x, image_height * count + coord_rel_y))
 
         meta = self.meta
-        path, ext = '', meta['e']
+        path, extension = '', meta['e']
 
-        dirPath = (
-            exportPath(self.cfg,
-                       path,
-                       dirname) if path else exportPath(self.cfg,
-                                                        pathFS(self.parent),
-                                                        dirname)
-        )
+        dirPath = (exportPath(self.cfg, path, dirname) if path else exportPath(
+            self.cfg, pathFS(self.parent), dirname))
         os.makedirs(dirPath, exist_ok=True)
         path = '{}{}'.format(osp.join(dirPath, self.name), '.{e}')
-        path = path.format(e=ext[0])
-        if ext in ('jpg', 'jpeg'):
+        path = path.format(e=extension[0])
+        if extension in ('jpg', 'jpeg'):
             toJPEG(sheet)
         sheet.save(path)
 
-        return path, { 'tiles_x': tiles_x, 'tiles_y': tiles_y }
+        return path, {'tiles_x': tiles_x, 'tiles_y': tiles_y}

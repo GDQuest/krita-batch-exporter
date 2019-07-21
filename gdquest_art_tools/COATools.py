@@ -1,14 +1,6 @@
 import os
 import json
 
-from functools import partial
-from .Infrastructure import WNode
-from .Utils import kickstart, flip
-from .Utils.Tree import iterPre
-
-from krita import Krita
-from PIL import Image, ImageOps
-
 
 class COAToolsFormat:
     def __init__(self, cfg, statusBar):
@@ -33,6 +25,10 @@ class COAToolsFormat:
         return (((oldValue - oldMin)*(newMax - newMin))/(oldMax - oldMin)) + newMin
 
     def save(self, output_dir=''):
+        """
+        Parses layers configured to export to COA Tools and builds the JSON data
+        COA Tools need to import the files
+        """
         # For each top-level node (Group Layer)
         cfg = self.cfg
         export_dir = output_dir
