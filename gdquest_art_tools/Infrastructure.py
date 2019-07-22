@@ -201,11 +201,22 @@ class WNode:
         dirPath = (exportPath(self.cfg, path, dirname) if path else exportPath(
             self.cfg, pathFS(self.parent), dirname))
         os.makedirs(dirPath, exist_ok=True)
-        path = '{}_{}'.format(os.path.join(dirPath, self.name),
-                              's{s:03d}_m{m:03d}.{e}')
+
+        def append_name(path, name, scale, margin, extension):
+            """
+            Appends a formatted name to the path argument
+            Returns the full path with the file
+            """
+            out = os.path.join(path, self.name)
+            if scale != self.cfg['meta']['s']:
+                out += '_@{}x'.format(scale / 100)
+            if margin:
+                out += '_m{:03d}'.format(margin)
+            out += "." + extension
+            return out
 
         it = product(scale, margin, extension)
-        it = starmap(lambda s, m, e: (s, m, e, path.format(e=e, m=m, s=s)), it)
+        it = starmap(lambda s, m, e: (s, m, e, append_name(dirPath, self.name, s, m, e)), it)
         it = starmap(
             lambda s, m, e, p:
             ([int(1e-2 * wh * s) for wh in self.size], 100 - s != 0, m, e, p),
