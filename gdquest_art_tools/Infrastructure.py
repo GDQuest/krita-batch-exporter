@@ -208,7 +208,7 @@ class WNode:
             Returns the full path with the file
             """
             out = os.path.join(path, self.name)
-            if scale != self.cfg['meta']['s']:
+            if scale != self.cfg['meta']['s'][0]:
                 out += '_@{}x'.format(scale / 100)
             if margin:
                 out += '_m{:03d}'.format(margin)
