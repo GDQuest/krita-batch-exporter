@@ -1,4 +1,4 @@
-import os.path as osp
+import os
 from itertools import chain
 
 
@@ -140,7 +140,7 @@ def pathFS(node):
     """
     it = filter(lambda n: n.parent, path(node))
     it = map(lambda n: n.name, it)
-    return osp.join(*it)
+    return os.path.join(*it)
 
 
 def iterDirs(node):

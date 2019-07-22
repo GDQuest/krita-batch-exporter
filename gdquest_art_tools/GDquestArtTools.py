@@ -4,7 +4,7 @@ GDquest Art Tools
 A collection of tools to improve Krita's workflow for game artists, graphic designers,
 and everyone, really! 😉
 """
-import os.path as osp
+
 from functools import partial
 from krita import DockWidget, DockWidgetFactory, DockWidgetFactoryBase, Krita
 from PyQt5.QtWidgets import (
@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QWidget
 )
-
+import os
 from .Config import CONFIG
 from .Infrastructure import WNode
 from .COATools import COAToolsFormat
@@ -42,7 +42,7 @@ def exportAllLayers(cfg, statusBar):
         root = doc.rootNode()
         root = WNode(cfg, root)
 
-        dirName = osp.dirname(doc.fileName())
+        dirName = os.path.dirname(doc.fileName())
         it = filter(lambda n: n.isExportable() and n.isMarked(), iterPre(root))
         it = map(partial(flip(WNode.save), dirName), it)
         kickstart(it)
@@ -57,7 +57,7 @@ def exportSelectedLayers(cfg, statusBar):
         doc = KI.activeDocument()
         ensureRGBAU8(doc)
 
-        dirName = osp.dirname(doc.fileName())
+        dirName = os.path.dirname(doc.fileName())
         nodes = KI.activeWindow().activeView().selectedNodes()
         it = map(partial(WNode, cfg), nodes)
         it = map(partial(flip(WNode.save), dirName), it)
@@ -73,7 +73,7 @@ def exportCOATools(mode, cfg, statusBar):
         ensureRGBAU8(doc)
 
         coat_format = COAToolsFormat(cfg, statusBar)
-        dirName = osp.dirname(doc.fileName())
+        dirName = os.path.dirname(doc.fileName())
         nodes = KI.activeWindow().activeView().selectedNodes()
 
         # If mode is document or no nodes are selected, use document root

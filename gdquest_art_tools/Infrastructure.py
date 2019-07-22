@@ -2,7 +2,6 @@ from collections import OrderedDict
 from functools import partial
 from itertools import groupby, product, starmap, tee
 import os
-import os.path as osp
 import re
 from krita import Krita
 from PIL import Image, ImageOps
@@ -202,7 +201,7 @@ class WNode:
         dirPath = (exportPath(self.cfg, path, dirname) if path else exportPath(
             self.cfg, pathFS(self.parent), dirname))
         os.makedirs(dirPath, exist_ok=True)
-        path = '{}_{}'.format(osp.join(dirPath, self.name),
+        path = '{}_{}'.format(os.path.join(dirPath, self.name),
                               's{s:03d}_m{m:03d}.{e}')
 
         it = product(scale, margin, extension)
@@ -230,7 +229,7 @@ class WNode:
         dirPath = (exportPath(self.cfg, path, dirname) if path else exportPath(
             self.cfg, pathFS(self.parent), dirname))
         os.makedirs(dirPath, exist_ok=True)
-        path = '{}{}'.format(osp.join(dirPath, self.name), '.{e}')
+        path = '{}{}'.format(os.path.join(dirPath, self.name), '.{e}')
         path = path.format(e=extension[0])
         if extension in ('jpg', 'jpeg'):
             toJPEG(img)
@@ -266,7 +265,7 @@ class WNode:
         dirPath = (exportPath(self.cfg, path, dirname) if path else exportPath(
             self.cfg, pathFS(self.parent), dirname))
         os.makedirs(dirPath, exist_ok=True)
-        path = '{}{}'.format(osp.join(dirPath, self.name), '.{e}')
+        path = '{}{}'.format(os.path.join(dirPath, self.name), '.{e}')
         path = path.format(e=extension[0])
         if extension in ('jpg', 'jpeg'):
             toJPEG(sheet)

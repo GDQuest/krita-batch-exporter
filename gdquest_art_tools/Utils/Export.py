@@ -1,10 +1,10 @@
-import os.path as osp
+import os
 import re
 from ..Config import CONFIG
 
 
 def exportPath(cfg, path, dirname=''):
-    return osp.join(dirname, subRoot(cfg, path))
+    return os.path.join(dirname, subRoot(cfg, path))
 
 
 def subRoot(cfg, path):
@@ -13,7 +13,7 @@ def subRoot(cfg, path):
 
 
 def sanitize(path):
-    ps = path.split(osp.sep)
+    ps = path.split(os.path.sep)
     ps = map(lambda p: re.sub(CONFIG['sym'], '_', p), ps)
-    ps = osp.sep.join(ps)
+    ps = os.path.sep.join(ps)
     return ps
