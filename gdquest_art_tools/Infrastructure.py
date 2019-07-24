@@ -193,6 +193,10 @@ class WNode:
         self.node.setName(newName)
 
     def save(self, dirname=''):
+        """
+        Extracts metadata from the node, converts the image data to PIL to process,
+        processes the image, names it based on metadata, and saves the image to the disk.
+        """
         img = dataToPIL(self)
         meta = self.meta
         path, extension, margin, scale = meta['p'][0], meta['e'], meta[
@@ -216,19 +220,14 @@ class WNode:
             return out
 
         it = product(scale, margin, extension)
+        # Below: s for scale, m for margin, e for extension
         it = starmap(lambda s, m, e: (s, m, e, append_name(dirPath, self.name, s, m, e)), it)
-        it = starmap(
-            lambda s, m, e, p:
-            ([int(1e-2 * wh * s) for wh in self.size], 100 - s != 0, m, e, p),
-            it)
-        it = starmap(
-            lambda sWH, sDo, m, e, p: (img.resize(sWH, Image.LANCZOS)
-                                       if sDo else img, m, e, p), it)
-        it = starmap(
-            lambda i, m, e, p: (ImageOps.expand(i, m,
-                                                (255, 255, 255, 0)), e, p), it)
-        it = starmap(
-            lambda i, e, p: (toJPEG(i) if e in ('jpg', 'jpeg') else i, p), it)
+        it = starmap(lambda s, m, e, p:
+                     ([int(1e-2 * wh * s) for wh in self.size], 100 - s != 0, m, e, p), it)
+        it = starmap(lambda sWH, sDo, m, e, p:
+                     (img.resize(sWH, Image.LANCZOS) if sDo else img, m, e, p), it)
+        it = starmap(lambda i, m, e, p: (ImageOps.expand(i, m, (255, 255, 255, 0)), e, p), it)
+        it = starmap(lambda i, e, p: (toJPEG(i) if e in ('jpg', 'jpeg') else i, p), it)
         it = starmap(lambda i, p: i.save(p), it)
         kickstart(it)
 
