@@ -7,4 +7,3 @@ def flip(f):
 
 def kickstart(it):
     deque(it, maxlen=0)
-

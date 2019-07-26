@@ -146,8 +146,8 @@ def pathFS(node):
 def iterDirs(node):
     it = iterPre(node)
     it = filter(lambda n: n.isGroupLayer(), it)
-    it = filter(lambda n: any(i.isExportable()
-                              for i in chain(*map(lambda c: iterPre(c), n.children))), it)
+    it = filter(
+        lambda n: any(i.isExportable() for i in chain(*map(lambda c: iterPre(c), n.children))), it
+    )
     it = map(pathFS, it)
     return it
-
