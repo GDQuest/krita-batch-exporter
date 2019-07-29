@@ -1,8 +1,10 @@
 """
-GDquest Art Tools
+GDQuest Batch Exporter
 -----------------
-A collection of tools to improve Krita's workflow for game artists, graphic designers,
-and everyone, really! 😉
+Batch export art assets from Krita using layer metadata.
+Updates and reads metadata in Krita's layer names, and uses it to smartly process and export layers.
+Export to the Blender Cut-Out Animation tools for modular 2d game animation.
+Licensed under the GNU GPL v3.0 terms
 """
 
 from functools import partial
@@ -110,7 +112,7 @@ def renameLayers(cfg, statusBar, lineEdit):
 
 
 class GameArtTools(DockWidget):
-    title = "GDquest Art Tools"
+    title = "Batch Exporter"
 
     def __init__(self):
         super().__init__()

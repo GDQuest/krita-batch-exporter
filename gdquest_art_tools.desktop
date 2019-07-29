@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Service
-ServiceTypes=Krita/PythonPlugin
-X-KDE-Library=gdquest_art_tools
-X-Python-2-Compatible=false
-X-Krita-Manual=Manual.html
-Name=GDquest Art Tools
-Comment=Collection of tools to create game art and do graphic design more efficiently with Krita

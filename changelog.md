@@ -1,6 +1,6 @@
 # What's new in the Add-On
 
-## GDquest Art tools 1.0 ⚠ alpha
+## Batch Exporter 1.0 ⚠ alpha
 
 ⚠ This release is a Work in Progress. Even if we're careful, new features can have bugs 🐛
 
@@ -8,7 +8,7 @@
 
 Get started with the add-on and the batch export tools: https://youtu.be/jJE5iqE8Q7c
 
-Updated the plugin's built-in documentation. See [Manual.md](https://github.com/GDquest/GDquest-art-tools/blob/master/gdquest_art_tools/Manual.md)
+Updated the plugin's built-in documentation. See [Manual.md](https://github.com/GDquest/krita-batch-exporter/blob/master/gdquest_art_tools/Manual.md)
 
 ### 🎥🕺 New features ###
 - **COA Tools export** basic support for exporting to coa_tools

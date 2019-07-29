@@ -1,4 +1,4 @@
-# GDquest Art Tools: Krita Plugin for Game Developers and Graphic Designers
+# Batch Exporter: Krita Plugin for Game Developers and Graphic Designers
 
 Free Krita plugin for designers, game artists and digital artists to work more
 productively:
@@ -9,7 +9,7 @@ productively:
 
 ## Batch Export Layers
 
-GDquest Art Tools exports individual layers to image files based on metadata in
+Batch Exporter exports individual layers to image files based on metadata in
 the layer name. The supported options are:
 
 - `[e=jpg,png]` - supported export image extensions
@@ -32,7 +32,7 @@ the other tag, `p=` has been left out. Below we describe how the plugin works.
 
 ## Getting Started
 
-GDquest Art Tools gives two options to batch export layers: `Export All Layers`
+Batch Exporter gives two options to batch export layers: `Export All Layers`
 or `Export Selected Layers`.
 
 `Export All Layers` only takes layers with the `e=extension[s]` tag into
