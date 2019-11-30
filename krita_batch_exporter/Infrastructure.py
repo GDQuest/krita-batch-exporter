@@ -14,8 +14,47 @@ KI = Krita.instance()
 
 
 def dataToPIL(wnode):
-    img = wnode.node.projectionPixelData(*wnode.bounds).data()
-    img = Image.frombytes("RGBA", wnode.size, img, "raw", "BGRA", 0, 1)
+    """
+    Returns an Image object using the Pillow library with 8-bit sRGB data that Pillow can then process.
+    If the input node's color space isn't 8-bit sRGB, uses Krita to convert the document to the right color space.
+    """
+
+    SRGB_PROFILE = "sRGB-elle-V2-srgbtrc.icc"
+
+    [x, y, w, h] = wnode.bounds
+
+    is_srgb = (wnode.node.colorModel() == "RGBA"
+        and wnode.node.colorDepth() == "U8"
+        and wnode.node.colorProfile().lower() == SRGB_PROFILE.lower())
+
+    img = None
+    if is_srgb:
+        pixel_data = wnode.node.projectionPixelData(x, y, w, h).data()
+        img = Image.frombytes("RGBA", wnode.size, pixel_data, "raw", "BGRA", 0, 1)
+    else:
+        temp_doc = KI.createDocument(
+            w,
+            h,
+            "_batch_exporter_temp",
+            wnode.node.colorModel(),
+            wnode.node.colorDepth(),
+            wnode.node.colorProfile(),
+            72
+        )
+
+        temp_layer = temp_doc.topLevelNodes()[0]
+        pixel_data = wnode.node.projectionPixelData(x, y, w, h).data()
+        temp_layer.setPixelData(pixel_data, x, y, w, h)
+
+        temp_doc.setColorSpace("RGBA", "U8", SRGB_PROFILE)
+        assert temp_doc.colorModel() == "RGBA" and temp_doc.colorDepth() == "U8"
+        assert temp_layer.colorModel() == "RGBA" and temp_layer.colorDepth() == "U8"
+
+        pixel_data = temp_layer.projectionPixelData(x, y, w, h).data()
+        img = Image.frombytes("RGBA", wnode.size, pixel_data, "raw", "BGRA", 0, 1)
+
+        temp_doc.close()
+
     return img
 
 

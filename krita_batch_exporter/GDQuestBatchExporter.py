@@ -39,7 +39,6 @@ def exportAllLayers(cfg, statusBar):
     msg, timeout = (cfg["done"]["msg"].format("Exported all layers."), cfg["done"]["timeout"])
     try:
         doc = KI.activeDocument()
-        ensureRGBAU8(doc)
 
         root = doc.rootNode()
         root = WNode(cfg, root)
@@ -57,7 +56,6 @@ def exportSelectedLayers(cfg, statusBar):
     msg, timeout = (cfg["done"]["msg"].format("Exported selected layers."), cfg["done"]["timeout"])
     try:
         doc = KI.activeDocument()
-        ensureRGBAU8(doc)
 
         dirName = os.path.dirname(doc.fileName())
         nodes = KI.activeWindow().activeView().selectedNodes()
