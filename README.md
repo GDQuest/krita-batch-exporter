@@ -1,6 +1,6 @@
 # Krita Batch Exporter
 
-![Plugin banner image](https://raw.githubusercontent.com/GDquest/krita-batch-exporter/master/img/gdquest-art-tools-banner.jpg)
+![Plugin banner image](https://raw.githubusercontent.com/GDquest/krita-batch-exporter/master/img/krita-batch-exporter-banner.svg)
 
 A Free and Open Source Krita plugin for designers, game artists, and digital artists to work more productively.
 
