@@ -79,7 +79,9 @@ clean() {
 }
 
 main() {
-	platform="$(uname | tr '[:upper:]' '[:lower:] | cut -d- -f 1')"
+	platform="$(uname | tr '[:upper:]' '[:lower:]')"
+	test "$(echo "$platform" | grep -q -E '^mingw64')" && platform="msys"
+
 	case "$platform" in
 	"linux" | "freebsd")
 		pykrita_dir="$HOME/.local/share/krita/pykrita"
@@ -90,7 +92,7 @@ main() {
 		pykrita_dir="$HOME/.local/share/krita/pykrita"
 		pillow_wheel=$WHEEL_MACOS
 		;;
-	"windowsnt" | "msys" | "mingw64_nt")
+	"windowsnt" | "msys")
 		pykrita_dir="$APPDATA/krita/pykrita"
 		pillow_wheel=$WHEEL_WINDOWS_x86_64
 		uname -a | grep --quiet x86_64 || pillow_wheel=$WHEEL_WINDOWS_i686
