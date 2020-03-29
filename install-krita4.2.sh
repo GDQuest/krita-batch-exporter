@@ -76,7 +76,7 @@ main() {
 		pykrita_dir="$HOME/.local/share/krita/pykrita"
 		pillow_wheel=$WHEEL_MACOS
 		;;
-	"windowsnt" | "msys")
+	"windowsnt" | "msys" | "mingw64_nt")
 		pykrita_dir="$APPDATA/krita/pykrita"
 		pillow_wheel=$WHEEL_WINDOWS_x86_64
 		uname -a | grep --quiet x86_64 || pillow_wheel=$WHEEL_WINDOWS_i686
