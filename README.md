@@ -12,6 +12,12 @@ Batch Exporter brings smart batch layer export and renaming. With it, you can **
 
 Our goal is to extend and enhance powerful but underused features that already exist in Krita to empower artists.
 
+## How to Use and video demo
+
+You can find a [video intro and tutorial](https://youtu.be/jJE5iqE8Q7c) on our YouTube channel.
+
+The plugin also comes with [text-based](https://github.com/GDquest/krita-batch-exporter/blob/master/krita_batch_exporter/Manual.md) documentation.
+
 ## How to install
 
 Due to limitations in Krita, the plugin needs Python 3 and a specific version of the Pillow image library installed alongside it to use all its features.
@@ -77,12 +83,6 @@ If you don't have Python 3 installed, download the executable on https://www.pyt
 If you use Linux, you most likely have Python 3 installed already. If not, in most distributions, you can install both Python 3 and its package manager pip by running a command in your shell.
 
 If you use Ubuntu or a Debian-based distribution, write `sudo apt install python3 python3-pip` in your terminal. Here is a more detailed Python install guide for Linux users: https://docs.python-guide.org/starting/install3/linux/
-
-## Learn to use the tools
-
-You can find a [video intro and tutorial](https://youtu.be/jJE5iqE8Q7c) on our YouTube channel.
-
-The plugin also comes with [text-based](https://github.com/GDquest/krita-batch-exporter/blob/master/krita_batch_exporter/Manual.md) documentation.
 
 ## Follow us, Support our work
 
