@@ -56,10 +56,9 @@ clean() {
 
 	echo "Cleaning up the existing addon directory..."
 	echo "$pykrita_dir/$addon_directory"
-	rm -rf -v "${pykrita_dir:?}/$addon_directory" "${pykrita_dir:?}/$desktop_file"
-	test $? && echo "There was an error removing the $addon_path directory." && exit 1
+	rm -rf "${pykrita_dir:?}/$addon_directory" "${pykrita_dir:?}/$desktop_file"
+	test $? -ne 0 && echo "There was an error removing the $addon_path directory." && exit 1
 	echo "Done."
-	exit 0
 }
 
 main() {
