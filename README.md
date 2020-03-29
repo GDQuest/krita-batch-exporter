@@ -16,6 +16,19 @@ Our goal is to extend and enhance powerful but underused features that already e
 
 Due to limitations in Krita, the plugin needs Python 3 and a specific version of the Pillow image library installed alongside it to use all its features.
 
+### Using the auto-install script
+
+_This install program needs testing. Please report any bug you find in [the issues tab](https://github.com/GDQuest/krita-batch-exporter/issues/new)._
+
+You can run the install script `./install-krita4.2.sh` from your terminal. On Windows, you must run this program from a bash shell. If you have git installed, you can use git bash, otherwise the Windows Subsystem for Linux.
+
+```sh
+chmod +x install-krita4.2.sh # Make the program executable
+./install-krita4.2.sh
+```
+
+It should install all the files you need for the add-on to work in Krita 4.2.x. It can also upgrade the add-on if you want to install a new release.
+
 ### Manual installation
 
 To install the add-on manually, you need to:
@@ -26,6 +39,8 @@ To install the add-on manually, you need to:
 1. Copy and paste the "krita_batch_exporter" folder in the `pykrita/` directory
 
 Then, you currently need a version of the Pillow image library that depends on your operating system and the version of Python built into Krita.
+
+#### Installing Pillow
 
 _Note: Pillow and the add-on should come built-into future versions of Krita. We need help from a developer to add support for Windows. For more information, see our [pull request](https://invent.kde.org/kde/krita/-/merge_requests/116)._
 
@@ -44,6 +59,8 @@ From there, here are the steps to finish installing the add-on:
 3. Run the command `python3 -m pip install --target Dependencies/ -- $link_to_pillow_install_file`
 
 Replace `$link_to_pillow_install_file` with the link you copied in the first step.
+
+### Activating the add-on
 
 To activate the add-on:
 
@@ -70,6 +87,8 @@ The plugin also comes with [text-based](https://github.com/GDquest/krita-batch-e
 ## Follow us, Support our work
 
 Krita Batch Exporter is a GDQuest project. Our mission is to bring people together to become better game developers, all that using and contributing to Free Software.
+
+This add-on's development is funded by our [game creation courses for Godot](https://gdquest.mavenseed.com/). Consider getting one to support our work!
 
 We make Free tutorials and tools to learn game creation. You can find us on:
 
