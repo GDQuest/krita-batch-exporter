@@ -12,12 +12,29 @@ WHEEL_MACOS="https://files.pythonhosted.org/packages/75/0d/4d112761a257fd15729d0
 WHEEL_WINDOWS_x86_64="https://files.pythonhosted.org/packages/24/ab/0fcfd4690d15eb8039a278b173fac2ede5d4139998195a6de3dd370399f4/Pillow-7.0.0-cp35-cp35m-win_amd64.whl"
 WHEEL_WINDOWS_i686="https://files.pythonhosted.org/packages/6c/4d/24927160d3e144c2e932ec1d1b39ebbb7396c2741c75691493f474cd0618/Pillow-7.0.0-cp35-cp35m-win32.whl"
 
+# Tests and finds the correct command to run python3
+# As on Windows, 'python3' might be 'python'
+#
+# Outputs the python command to run Python 3 or exits with an error code.
+find_python_command() {
+	version="$(python -c 'import sys; print(sys.version_info[0])')"
+	test $? -ne 0 && exit 1
+	test "$version" = "3" && echo "python" && return
+
+	version="$(python3 -c 'import sys; print(sys.version_info[0])')"
+	test $? -ne 0 && exit 1
+	test "$version" = "3" && echo "python3" && return
+}
+
 # Installs the add-on to the krita resources folder
 #
 # Arguments:
 # $1 -- pykrita directory path
 # $2 -- url of the wheel file to download
 install() {
+	python_command="$(find_python_command)"
+	test $? -ne 0 && echo "You need to have Python 3 installed to install $NAME. Exiting" && exit 1
+
 	pykrita_dir="$1"
 	pillow_wheel="$2"
 
@@ -39,7 +56,7 @@ install() {
 	cp -r "$addon_directory" "$desktop_file" "$pykrita_dir"
 	echo "Done."
 	cd "$pykrita_dir" || exit 1
-	python3 -m pip install --upgrade --target "$addon_directory/Dependencies/" -- "$pillow_wheel"
+	eval "$python_command -m pip install --upgrade --target $addon_directory/Dependencies/ -- $pillow_wheel"
 	test $? -ne 0 && exit 1
 
 	cd "$folder_start" || exit 1
@@ -62,10 +79,7 @@ clean() {
 }
 
 main() {
-	python3 --version >/dev/null || echo "You need to have Python 3 installed to install $NAME. Exiting"
-	test $? -ne 0 && exit 1
-
-	platform="$(uname | tr '[:upper:]' '[:lower:]')"
+	platform="$(uname | tr '[:upper:]' '[:lower:] | cut -d- -f 1')"
 	case "$platform" in
 	"linux" | "freebsd")
 		pykrita_dir="$HOME/.local/share/krita/pykrita"
