@@ -88,7 +88,7 @@ main() {
 		uname -a | grep --quiet x86_64 || pillow_wheel=$WHEEL_LINUX_i686
 		;;
 	"darwin")
-		pykrita_dir="$HOME/.local/share/krita/pykrita"
+		pykrita_dir="/Users/$USER/Library/Application Support/krita/pykrita"
 		pillow_wheel=$WHEEL_MACOS
 		;;
 	"windowsnt" | "msys" | "mingw64_nt")
