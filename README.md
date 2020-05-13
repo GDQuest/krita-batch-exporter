@@ -6,6 +6,8 @@ Export your game assets, sprites, designs, and more with speed and flexibility!
 
 This Free Krita 4 add-on is a tool to help designers, game artists, and digital artists to work more productively.
 
+➡ Follow us on [Twitter](https://twitter.com/NathanGDQuest) and [YouTube](https://www.youtube.com/c/gdquest/) for free game creation tutorials, tips, and news! Get one of our [Godot game creation courses](https://gdquest.mavenseed.com/) to support our work on Free Software.
+
 Batch Exporter brings smart batch layer export and renaming. With it, you can **automatically re-export** groups and layers to specific folders, **scale images on export**, and more! All that using Krita 4's new background save. If you've ever used Photoshop's Generator feature, this is similar.
 
 ![Plugin demo](https://raw.githubusercontent.com/GDquest/krita-batch-exporter/master/img/krita-art-tools-example.jpg)
