@@ -1,7 +1,6 @@
 import os
 from itertools import chain
 
-
 def iterPre(node, maxDepth=-1):
     """
     Visit nodes in pre order.
@@ -140,7 +139,7 @@ def pathFS(node):
     """
     it = filter(lambda n: n.parent, path(node))
     it = map(lambda n: n.name, it)
-    return os.path.join(*it)
+    return os.path.join('', *it) # In krita 4.3 it can be empty
 
 
 def iterDirs(node):
