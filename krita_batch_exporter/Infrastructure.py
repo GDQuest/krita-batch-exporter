@@ -295,9 +295,10 @@ class WNode:
             else exportPath(self.cfg, pathFS(self.parent), dirname)
         )
         os.makedirs(dirPath, exist_ok=True)
+        ext=extension[0]
         path = "{}{}".format(os.path.join(dirPath, self.name), ".{e}")
-        path = path.format(e=extension[0])
-        if extension in ("jpg", "jpeg"):
+        path = path.format(e=ext)
+        if ext in ("jpg", "jpeg"):
             img = expand_and_format(img, is_jpg=True)
         img.save(path)
 
