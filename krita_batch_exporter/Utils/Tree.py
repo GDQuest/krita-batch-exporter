@@ -139,7 +139,7 @@ def pathFS(node):
     """
     it = filter(lambda n: n.parent, path(node))
     it = map(lambda n: n.name, it)
-    return os.path.join('', *it) # In krita 4.3 it can be empty
+    return os.path.join('', *it)
 
 
 def iterDirs(node):

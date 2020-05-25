@@ -23,9 +23,9 @@ def nodeToImage(wnode):
     return QImage(wnode.node.thumbnail(w, h))
 
 
-def expand_and_format(img, margin=0, is_jpg=False):
+def expandAndFormat(img, margin=0, is_jpg=False):
     """
-    Draws the image in a white background with the required format.
+    Draws the image with transparent background if `is_jpg == False`, otherwise with a white background.
     It's done in a single function, to avoid creating extra images
     """
     if not margin and not is_jpg:
@@ -276,7 +276,7 @@ class WNode:
         )
         it = starmap(
             lambda image, margin, extension, path: (
-                expand_and_format(image, margin, is_jpg=extension in ("jpg", "jpeg")),
+                expandAndFormat(image, margin, is_jpg=extension in ("jpg", "jpeg")),
                 path,
             ),
             it,
@@ -295,11 +295,11 @@ class WNode:
             else exportPath(self.cfg, pathFS(self.parent), dirname)
         )
         os.makedirs(dirPath, exist_ok=True)
-        ext=extension[0]
+        ext = extension[0]
         path = "{}{}".format(os.path.join(dirPath, self.name), ".{e}")
         path = path.format(e=ext)
         if ext in ("jpg", "jpeg"):
-            img = expand_and_format(img, is_jpg=True)
+            img = expandAndFormat(img, is_jpg=True)
         img.save(path)
 
         return path
@@ -339,7 +339,7 @@ class WNode:
         path = "{}{}".format(os.path.join(dirPath, self.name), ".{e}")
         path = path.format(e=extension[0])
         if extension in ("jpg", "jpeg"):
-            sheet = expand_and_format(sheet, is_jpg=True)
+            sheet = expandAndFormat(sheet, is_jpg=True)
         sheet.save(path)
 
         return path, {"tiles_x": tiles_x, "tiles_y": tiles_y}
