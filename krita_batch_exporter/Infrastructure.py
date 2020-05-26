@@ -1,67 +1,61 @@
+import os
+import re
 from collections import OrderedDict
 from functools import partial
 from itertools import groupby, product, starmap, tee
-import os
-import re
-from krita import Krita
-from PIL import Image, ImageOps
 
-from .Utils import kickstart, flip
-from .Utils.Export import sanitize, exportPath
+from krita import Krita
+from PyQt5.QtCore import QSize
+from PyQt5.QtGui import QColor, QImage, QPainter
+
+from .Utils import flip, kickstart
+from .Utils.Export import exportPath, sanitize
 from .Utils.Tree import pathFS
 
 KI = Krita.instance()
 
 
-def dataToPIL(wnode):
+def nodeToImage(wnode):
     """
-    Returns an Image object using the Pillow library with 8-bit sRGB data that Pillow can then process.
-    If the input node's color space isn't 8-bit sRGB, uses Krita to convert the document to the right color space.
+    Returns an QImage 8-bit sRGB
     """
+
 
     SRGB_PROFILE = "sRGB-elle-V2-srgbtrc.icc"
 
     [x, y, w, h] = wnode.bounds
 
+
     is_srgb = (wnode.node.colorModel() == "RGBA"
         and wnode.node.colorDepth() == "U8"
         and wnode.node.colorProfile().lower() == SRGB_PROFILE.lower())
 
-    img = None
     if is_srgb:
         pixel_data = wnode.node.projectionPixelData(x, y, w, h).data()
-        img = Image.frombytes("RGBA", wnode.size, pixel_data, "raw", "BGRA", 0, 1)
     else:
-        temp_doc = KI.createDocument(
-            w,
-            h,
-            "_batch_exporter_temp",
-            wnode.node.colorModel(),
-            wnode.node.colorDepth(),
-            wnode.node.colorProfile(),
-            72
-        )
+        temp_node = wnode.node.duplicate()
+        temp_node.setColorSpace("RGBA", "U8", SRGB_PROFILE)
+        pixel_data = temp_node.projectionPixelData(x, y, w, h).data()
 
-        temp_layer = temp_doc.topLevelNodes()[0]
-        pixel_data = wnode.node.projectionPixelData(x, y, w, h).data()
-        temp_layer.setPixelData(pixel_data, x, y, w, h)
-
-        temp_doc.setColorSpace("RGBA", "U8", SRGB_PROFILE)
-        assert temp_doc.colorModel() == "RGBA" and temp_doc.colorDepth() == "U8"
-        assert temp_layer.colorModel() == "RGBA" and temp_layer.colorDepth() == "U8"
-
-        pixel_data = temp_layer.projectionPixelData(x, y, w, h).data()
-        img = Image.frombytes("RGBA", wnode.size, pixel_data, "raw", "BGRA", 0, 1)
-
-        temp_doc.close()
-
-    return img
+    return QImage(pixel_data, w, h, QImage.Format_ARGB32)
 
 
-def toJPEG(img):
-    newImg = Image.new("RGBA", img.size, 4 * (255,))
-    newImg.alpha_composite(img)
-    return newImg.convert("RGB")
+def expandAndFormat(img, margin=0, is_jpg=False):
+    """
+    Draws the image with transparent background if `is_jpg == False`, otherwise with a white background.
+    It's done in a single function, to avoid creating extra images
+    """
+    if not margin and not is_jpg:
+        return img
+    corner = QSize(margin, margin)
+    white = QColor(255, 255, 255) if is_jpg else QColor(255, 255, 255, 0)
+    canvas = QImage(
+        img.size() + corner * 2, QImage.Format_RGB32 if is_jpg else QImage.Format_ARGB32
+    )
+    canvas.fill(white)
+    p = QPainter(canvas)
+    p.drawImage(margin, margin, img)
+    return canvas
 
 
 class WNode:
@@ -240,10 +234,10 @@ class WNode:
 
     def save(self, dirname=""):
         """
-        Extracts metadata from the node, converts the image data to PIL to process,
+        Transform Node to a QImage
         processes the image, names it based on metadata, and saves the image to the disk.
         """
-        img = dataToPIL(self)
+        img = nodeToImage(self)
         meta = self.meta
         margin, scale = meta["m"], meta["s"]
         extension, path = meta["e"], meta["p"][0]
@@ -290,33 +284,26 @@ class WNode:
         )
         it = starmap(
             lambda width_height, should_scale, margin, extension, path: (
-                img.resize(width_height, Image.LANCZOS) if should_scale else img,
+                img.smoothScaled(*width_height) if should_scale else img,
                 margin,
-                extension,
+                extension in ("jpg", "jpeg"),
                 path,
             ),
             it,
         )
         it = starmap(
-            lambda image, margin, extension, path: (
-                ImageOps.expand(image, margin, (255, 255, 255, 0)),
-                extension,
+            lambda image, margin, is_jpg, path: (
+                expandAndFormat(image, margin, is_jpg=is_jpg),
                 path,
+                is_jpg
             ),
             it,
         )
-        it = starmap(
-            lambda image, extension, path: (
-                toJPEG(image) if extension in ("jpg", "jpeg") else image,
-                path,
-            ),
-            it,
-        )
-        it = starmap(lambda image, path: image.save(path), it)
+        it = starmap(lambda image, path, is_jpg: image.save(path, quality=90 if is_jpg else -1), it)
         kickstart(it)
 
     def saveCOA(self, dirname=""):
-        img = dataToPIL(self)
+        img = nodeToImage(self)
         meta = self.meta
         path, extension = "", meta["e"]
 
@@ -326,11 +313,13 @@ class WNode:
             else exportPath(self.cfg, pathFS(self.parent), dirname)
         )
         os.makedirs(dirPath, exist_ok=True)
+        ext = extension[0]
         path = "{}{}".format(os.path.join(dirPath, self.name), ".{e}")
-        path = path.format(e=extension[0])
-        if extension in ("jpg", "jpeg"):
-            toJPEG(img)
-        img.save(path)
+        path = path.format(e=ext)
+        is_jpg = ext in ("jpg", "jpeg")
+        if is_jpg in ("jpg", "jpeg"):
+            img = expandAndFormat(img, is_jpg=is_jpg)
+        img.save(path, quality=90 if is_jpg else -1)
 
         return path
 
@@ -344,16 +333,18 @@ class WNode:
         image_width, image_height = self.size  # Target frame size
         sheet_width, sheet_height = (image_width, image_height * tiles_y)  # Sheet dimensions
 
-        sheet = Image.new(
-            mode="RGBA", size=(sheet_width, sheet_height), color=(0, 0, 0, 0)
-        )  # fully transparent
+        sheet = QImage(sheet_width, sheet_height, QImage.Format_ARGB32)
+        sheet.fill(QColor(255, 255, 255, 0))
+        painter = QPainter(sheet)
 
         p_coord_x, p_coord_y = self.position
         for count, image in enumerate(images):
             coord_x, coord_y = image.position
             coord_rel_x, coord_rel_y = coord_x - p_coord_x, coord_y - p_coord_y
 
-            sheet.paste(dataToPIL(image), (coord_rel_x, image_height * count + coord_rel_y))
+            painter.drawImage(
+                coord_rel_x, image_height * count + coord_rel_y, nodeToImage(image),
+            )
 
         meta = self.meta
         path, extension = "", meta["e"]
@@ -366,8 +357,9 @@ class WNode:
         os.makedirs(dirPath, exist_ok=True)
         path = "{}{}".format(os.path.join(dirPath, self.name), ".{e}")
         path = path.format(e=extension[0])
-        if extension in ("jpg", "jpeg"):
-            toJPEG(sheet)
-        sheet.save(path)
+        is_jpg = extension in ("jpg", "jpeg")
+        if is_jpg:
+            sheet = expandAndFormat(sheet, is_jpg=True)
+        sheet.save(path, quality=90 if is_jpg else -1)
 
         return path, {"tiles_x": tiles_x, "tiles_y": tiles_y}
