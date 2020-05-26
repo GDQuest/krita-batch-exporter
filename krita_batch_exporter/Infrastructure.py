@@ -33,27 +33,9 @@ def nodeToImage(wnode):
     if is_srgb:
         pixel_data = wnode.node.projectionPixelData(x, y, w, h).data()
     else:
-        temp_doc = KI.createDocument(
-            w,
-            h,
-            "_batch_exporter_temp",
-            wnode.node.colorModel(),
-            wnode.node.colorDepth(),
-            wnode.node.colorProfile(),
-            72
-        )
-
-        temp_layer = temp_doc.topLevelNodes()[0]
-        pixel_data = wnode.node.projectionPixelData(x, y, w, h).data()
-        temp_layer.setPixelData(pixel_data, x, y, w, h)
-
-        temp_doc.setColorSpace("RGBA", "U8", SRGB_PROFILE)
-        assert temp_doc.colorModel() == "RGBA" and temp_doc.colorDepth() == "U8"
-        assert temp_layer.colorModel() == "RGBA" and temp_layer.colorDepth() == "U8"
-
-        pixel_data = temp_layer.projectionPixelData(x, y, w, h).data()
-
-        temp_doc.close()
+        temp_node = wnode.node.duplicate()
+        temp_node.setColorSpace("RGBA", "U8", SRGB_PROFILE)
+        pixel_data = temp_node.projectionPixelData(x, y, w, h).data()
 
     return QImage(pixel_data, w, h, QImage.Format_ARGB32)
 
