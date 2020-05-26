@@ -11,7 +11,7 @@ This release is a work-in-progress
 - Added support for the [Blender Cut-Out Animation tools](https://github.com/ndee85/coa_tools), a Free tool to do modular 2D character animation.
 - Added a field to specify the output path for the entire export, instead of having to do it per layer.
 - Added support for all color models and spaces.
-- Added an auto-install shell script.
+- Added an auto-install shell script, `install-krita4.2.sh`
 
 ### Improvements
 
@@ -21,10 +21,12 @@ This release is a work-in-progress
 
 - Updated the manual to cover new features.
 - Added a detailed install guide to the [README](https://github.com/GDQuest/krita-batch-exporter)
+- Removed obsolete content about Pillow and Python installs.
 
 ### Changes
 
 - Renamed the addon to Krita Batch Exporter.
+- The add-on now uses QImage instead of Pillow, making it much easier to install.
 
 ## Krita Batch Exporter 1.0.0 alpha
 
