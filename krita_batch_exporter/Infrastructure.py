@@ -19,8 +19,43 @@ def nodeToImage(wnode):
     """
     Returns an QImage 8-bit sRGB
     """
+
+
+    SRGB_PROFILE = "sRGB-elle-V2-srgbtrc.icc"
+
     [x, y, w, h] = wnode.bounds
-    return QImage(wnode.node.thumbnail(w, h))
+
+
+    is_srgb = (wnode.node.colorModel() == "RGBA"
+        and wnode.node.colorDepth() == "U8"
+        and wnode.node.colorProfile().lower() == SRGB_PROFILE.lower())
+
+    if is_srgb:
+        pixel_data = wnode.node.projectionPixelData(x, y, w, h).data()
+    else:
+        temp_doc = KI.createDocument(
+            w,
+            h,
+            "_batch_exporter_temp",
+            wnode.node.colorModel(),
+            wnode.node.colorDepth(),
+            wnode.node.colorProfile(),
+            72
+        )
+
+        temp_layer = temp_doc.topLevelNodes()[0]
+        pixel_data = wnode.node.projectionPixelData(x, y, w, h).data()
+        temp_layer.setPixelData(pixel_data, x, y, w, h)
+
+        temp_doc.setColorSpace("RGBA", "U8", SRGB_PROFILE)
+        assert temp_doc.colorModel() == "RGBA" and temp_doc.colorDepth() == "U8"
+        assert temp_layer.colorModel() == "RGBA" and temp_layer.colorDepth() == "U8"
+
+        pixel_data = temp_layer.projectionPixelData(x, y, w, h).data()
+
+        temp_doc.close()
+
+    return QImage(pixel_data, w, h, QImage.Format_ARGB32)
 
 
 def expandAndFormat(img, margin=0, is_jpg=False):
@@ -269,19 +304,20 @@ class WNode:
             lambda width_height, should_scale, margin, extension, path: (
                 img.smoothScaled(*width_height) if should_scale else img,
                 margin,
-                extension,
+                extension in ("jpg", "jpeg"),
                 path,
             ),
             it,
         )
         it = starmap(
-            lambda image, margin, extension, path: (
-                expandAndFormat(image, margin, is_jpg=extension in ("jpg", "jpeg")),
+            lambda image, margin, is_jpg, path: (
+                expandAndFormat(image, margin, is_jpg=is_jpg),
                 path,
+                is_jpg
             ),
             it,
         )
-        it = starmap(lambda image, path: image.save(path), it)
+        it = starmap(lambda image, path, is_jpg: image.save(path, quality=90 if is_jpg else -1), it)
         kickstart(it)
 
     def saveCOA(self, dirname=""):
@@ -298,9 +334,10 @@ class WNode:
         ext = extension[0]
         path = "{}{}".format(os.path.join(dirPath, self.name), ".{e}")
         path = path.format(e=ext)
-        if ext in ("jpg", "jpeg"):
-            img = expandAndFormat(img, is_jpg=True)
-        img.save(path)
+        is_jpg = ext in ("jpg", "jpeg")
+        if is_jpg in ("jpg", "jpeg"):
+            img = expandAndFormat(img, is_jpg=is_jpg)
+        img.save(path, quality=90 if is_jpg else -1)
 
         return path
 
@@ -338,8 +375,9 @@ class WNode:
         os.makedirs(dirPath, exist_ok=True)
         path = "{}{}".format(os.path.join(dirPath, self.name), ".{e}")
         path = path.format(e=extension[0])
-        if extension in ("jpg", "jpeg"):
+        is_jpg = extension in ("jpg", "jpeg")
+        if is_jpg:
             sheet = expandAndFormat(sheet, is_jpg=True)
-        sheet.save(path)
+        sheet.save(path, quality=90 if is_jpg else -1)
 
         return path, {"tiles_x": tiles_x, "tiles_y": tiles_y}
