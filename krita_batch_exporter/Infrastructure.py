@@ -19,16 +19,14 @@ def nodeToImage(wnode):
     """
     Returns an QImage 8-bit sRGB
     """
-
-
     SRGB_PROFILE = "sRGB-elle-V2-srgbtrc.icc"
-
     [x, y, w, h] = wnode.bounds
 
-
-    is_srgb = (wnode.node.colorModel() == "RGBA"
+    is_srgb = (
+        wnode.node.colorModel() == "RGBA"
         and wnode.node.colorDepth() == "U8"
-        and wnode.node.colorProfile().lower() == SRGB_PROFILE.lower())
+        and wnode.node.colorProfile().lower() == SRGB_PROFILE.lower()
+    )
 
     if is_srgb:
         pixel_data = wnode.node.projectionPixelData(x, y, w, h).data()
