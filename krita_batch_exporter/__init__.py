@@ -1,7 +1,3 @@
-import sys
-import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "Dependencies")))
 from .GDQuestBatchExporter import registerDocker  # noqa
 
 registerDocker()
