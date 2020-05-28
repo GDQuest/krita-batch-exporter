@@ -124,16 +124,25 @@ class GameArtTools(DockWidget):
         exportLabel = QLabel("Export")
         exportAllLayersButton = QPushButton("All Layers")
         exportSelectedLayersButton = QPushButton("Selected Layers")
-        renameLabel = QLabel("Update Layer Meta/Name")
+        renameLabel = QLabel("Update Name and Metadata")
         renameLineEdit = QLineEdit()
         renameButton = QPushButton("Update")
         statusBar = QStatusBar()
+
+        exportLabel.setToolTip("Export individual images")
+        exportAllLayersButton.setToolTip("Export all layers with metadata")
+        exportSelectedLayersButton.setToolTip("Export selected layers only")
+        renameButton.setToolTip("Batch update selected layer names and metadata")
 
         # COA Tools GroupBox
         coaToolsGroupBox = QGroupBox("COA Tools")
         coaToolsHBoxLayout = QHBoxLayout()
         coaToolsExportSelectedLayersButton = QPushButton("Selected Layers")
         coaToolsExportDocumentButton = QPushButton("Document")
+
+        coaToolsGroupBox.setToolTip("Blender Cut-Out Animation Tools")
+        coaToolsExportSelectedLayersButton.setToolTip("Export selected layers only")
+        coaToolsExportDocumentButton.setToolTip("Export all layers with metadata")
 
         coaToolsHBoxLayout.addWidget(coaToolsExportDocumentButton)
         coaToolsHBoxLayout.addWidget(coaToolsExportSelectedLayersButton)

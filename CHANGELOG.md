@@ -15,7 +15,8 @@ This release is a work-in-progress
 
 ### Improvements
 
-- File name prefixes are now only added if you use a transformation like scale, margin...
+- File name prefixes are now only added if you use a transformation like scale or margin.
+- Added tool-tips.
 
 ### Documentation
 
