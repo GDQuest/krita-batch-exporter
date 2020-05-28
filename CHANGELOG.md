@@ -4,8 +4,6 @@ This document lists new features, improvements, changes, and bug fixes in each r
 
 ## Krita Batch Exporter 1.0.0
 
-This release is a work-in-progress
-
 ### New features
 
 - Added support for the [Blender Cut-Out Animation tools](https://github.com/ndee85/coa_tools), a Free tool to do modular 2D character animation.
