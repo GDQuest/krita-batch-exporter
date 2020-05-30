@@ -9,7 +9,8 @@ def exportPath(cfg, path, dirname=""):
 
 def subRoot(cfg, path):
     patF, patR = cfg["rootPat"], CONFIG["outDir"]
-    return re.sub(patF, patR, path, count=1)
+    rootless = re.sub(patF, '', path, count=1)
+    return patR + rootless
 
 
 def sanitize(path):
