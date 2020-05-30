@@ -1,5 +1,5 @@
-import os
 import json
+from pathlib import Path
 
 
 class COAToolsFormat:
@@ -52,7 +52,7 @@ class COAToolsFormat:
                         fn, sheet_meta = child.saveCOASpriteSheet(export_dir)
                     else:
                         fn = child.saveCOA(export_dir)
-
+                    path = Path(fn)
                     node = child.node
                     coords = node.bounds().getCoords()
                     relative_coords = coords
@@ -77,9 +77,7 @@ class COAToolsFormat:
                         "opacity": self.remap(node.opacity(), 0, 255, 0, 1),
                         "pivot_offset": [0.0, 0.0],
                         "position": relative_coords,
-                        "resource_path": fn.replace(
-                            export_dir + os.path.sep + cfg["outDir"] + os.path.sep, ""
-                        ),
+                        "resource_path": str(path.relative_to(Path(export_dir, cfg["outDir"]))),
                         "rotation": 0.0,
                         "scale": [1.0, 1.0],
                         "tiles_x": tiles_x,
@@ -88,12 +86,8 @@ class COAToolsFormat:
                         "z": idx - len(children) + 1,
                     }
                     coa_data["nodes"].append(coa_entry)
-
                 json_data = json.dumps(coa_data, sort_keys=True, indent=4, separators=(",", ": "))
-                with open(
-                    export_dir + os.path.sep + cfg["outDir"] + os.path.sep + wn.name + ".json", "w"
-                ) as fh:
-                    fh.write(json_data)
+                Path(export_dir, cfg["outDir"], wn.name + ".json").write_text(json_data)
 
             except ValueError as e:
                 self.showError(e)
