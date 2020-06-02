@@ -2,6 +2,16 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## Krita Batch Exporter 1.0.1
+
+### Changes
+
+- Simplified the source code using `pathlib.Path` instead of `os.sep`.
+
+### Bug fixes
+
+- Fixed export with COA tools.
+
 ## Krita Batch Exporter 1.0.0
 
 ### New features
