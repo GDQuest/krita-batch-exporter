@@ -30,7 +30,6 @@ class COAToolsFormat:
         COA Tools need to import the files
         """
         # For each top-level node (Group Layer)
-        cfg = self.cfg
         export_dir = output_dir
         for wn in self.nodes:
             children = wn.children
@@ -78,7 +77,7 @@ class COAToolsFormat:
                         "pivot_offset": [0.0, 0.0],
                         "position": relative_coords,
                         "resource_path": fn.replace(
-                            export_dir + os.path.sep + cfg["outDir"] + os.path.sep, ""
+                            export_dir + os.path.sep, ""
                         ),
                         "rotation": 0.0,
                         "scale": [1.0, 1.0],
@@ -91,7 +90,7 @@ class COAToolsFormat:
 
                 json_data = json.dumps(coa_data, sort_keys=True, indent=4, separators=(",", ": "))
                 with open(
-                    export_dir + os.path.sep + cfg["outDir"] + os.path.sep + wn.name + ".json", "w"
+                    export_dir + os.path.sep + wn.name + ".json", "w"
                 ) as fh:
                     fh.write(json_data)
 
