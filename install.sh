@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
 
-NAME="Krita Batch Exporter"
+NAME="Batch Exporter"
 
-desktop_file="krita_batch_exporter.desktop"
-addon_directory="krita_batch_exporter"
+desktop_file="kritapykrita_batch_exporter.desktop"
+addon_directory="batch_exporter"
 addon_path=""
 
 # Installs the add-on to the krita resources folder.
@@ -27,7 +27,7 @@ install() {
 		test $? -ne 0 && exit 128
 	fi
 
-	echo "Copying 'krita_batch_exporter/' to '$pykrita_dir'..."
+	echo "Copying $addon_directory to '$pykrita_dir'..."
 	cp -r "$addon_directory" "$desktop_file" "$pykrita_dir"
 	echo "Done."
 	cd "$pykrita_dir" || exit 1
