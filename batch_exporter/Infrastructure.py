@@ -20,7 +20,7 @@ def nodeToImage(wnode):
     Returns an QImage 8-bit sRGB
     """
     SRGB_PROFILE = "sRGB-elle-V2-srgbtrc.icc"
-    if wnode.fullscreen:
+    if wnode.trim == False:
         bounds = KI.activeDocument().bounds()
         x = bounds.x()
         y = bounds.y()
@@ -95,12 +95,12 @@ class WNode:
         meta = filter(lambda m: m[0] in self.cfg["meta"].keys(), meta)
         meta = OrderedDict((k, v.lower().split(s)) for k, v in meta)
         meta.update({k: list(map(int, v)) for k, v in meta.items() if k in "ms"})
-        meta["f"] = ("f" in meta)                    # full-screen export
         meta.setdefault("c", self.cfg["meta"]["c"])  # coa_tools
         meta.setdefault("e", self.cfg["meta"]["e"])  # extension
         meta.setdefault("m", self.cfg["meta"]["m"])  # margin
         meta.setdefault("p", self.cfg["meta"]["p"])  # path
         meta.setdefault("s", self.cfg["meta"]["s"])  # scale
+        meta.setdefault("t", self.cfg["meta"]["t"])  # trim
         return meta
 
     @property
@@ -112,8 +112,11 @@ class WNode:
         return self.meta["c"][0]
 
     @property
-    def fullscreen(self):
-        return self.meta["f"]
+    def trim(self):
+        if self.meta["t"] == ["false"]:
+            return False
+        else:
+            return self.meta["t"]
 
     @property
     def parent(self):
