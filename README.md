@@ -42,7 +42,7 @@ To install the add-on manually, you need to:
 1. Download the "Source code (zip)" file in the [latest release](https://github.com/GDQuest/krita-batch-exporter/releases)
 1. Open Krita and go to the Settings menu -> Manage Resources
 1. Click "Open Resources Folder" to access your Krita resources directory
-1. Copy and paste the "krita_batch_exporter" folder in the `pykrita/` directory
+1. Copy and paste the `krita_batch_exporter/` folder and the `kritapykrita_batch_exporter.desktop` file in the `pykrita/` directory.
 
 ### Activating the add-on
 
