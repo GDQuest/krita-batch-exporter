@@ -2,7 +2,11 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
-## Krita Batch Exporter 1.0.1
+## Krita Batch Exporter 1.1.0
+
+### Features
+
+- Added a `t=` option (trim) for layers. Write `t=false` on any layer to export it at the document's size. This is useful for animation.
 
 ### Changes
 
