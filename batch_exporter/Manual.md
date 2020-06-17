@@ -19,6 +19,8 @@ the layer name. The supported options are:
 - `[m=20,30,100]` - extra margin in `px`. The layer is trimmed to the
   smallest bounding box by default. This option adds extra padding around the
   layer.
+- `[t=false]` - disable trimming the exported layer to the bounding box of
+  the content.
 
 A typical layer name with metadata looks like: `CharacterTorso e=png m=30
 s=50,100`. This exports the layer as two images, with an added padding of 30 pixels

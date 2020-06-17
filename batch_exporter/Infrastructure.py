@@ -20,7 +20,14 @@ def nodeToImage(wnode):
     Returns an QImage 8-bit sRGB
     """
     SRGB_PROFILE = "sRGB-elle-V2-srgbtrc.icc"
-    [x, y, w, h] = wnode.bounds
+    if wnode.trim == False:
+        bounds = KI.activeDocument().bounds()
+        x = bounds.x()
+        y = bounds.y()
+        w = bounds.width()
+        h = bounds.height()
+    else:
+        [x, y, w, h] = wnode.bounds
 
     is_srgb = (
         wnode.node.colorModel() == "RGBA"
@@ -93,6 +100,7 @@ class WNode:
         meta.setdefault("m", self.cfg["meta"]["m"])  # margin
         meta.setdefault("p", self.cfg["meta"]["p"])  # path
         meta.setdefault("s", self.cfg["meta"]["s"])  # scale
+        meta.setdefault("t", self.cfg["meta"]["t"])  # trim
         return meta
 
     @property
@@ -102,6 +110,13 @@ class WNode:
     @property
     def coa(self):
         return self.meta["c"][0]
+
+    @property
+    def trim(self):
+        if self.meta["t"] == ["false"]:
+            return False
+        else:
+            return self.meta["t"]
 
     @property
     def parent(self):
