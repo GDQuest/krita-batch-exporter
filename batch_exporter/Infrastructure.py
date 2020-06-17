@@ -113,7 +113,7 @@ class WNode:
 
     @property
     def trim(self):
-        if self.meta["t"] == ["false"]:
+        if self.meta["t"].lower() in ["false", "no"]:
             return False
         else:
             return self.meta["t"]
@@ -308,7 +308,7 @@ class WNode:
             lambda image, margin, is_jpg, path: (
                 expandAndFormat(image, margin, is_jpg=is_jpg),
                 path,
-                is_jpg
+                is_jpg,
             ),
             it,
         )
