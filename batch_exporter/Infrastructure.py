@@ -113,7 +113,7 @@ class WNode:
 
     @property
     def trim(self):
-        if self.meta["t"].lower() in ["false", "no"]:
+        if self.meta["t"][0].lower() in ["false", "no"]:
             return False
         else:
             return self.meta["t"]
