@@ -18,7 +18,7 @@ Our goal is to extend and enhance powerful but underused features that already e
 
 You can find a [video intro and tutorial](https://youtu.be/jJE5iqE8Q7c) on our YouTube channel.
 
-The plugin also comes with [text-based](https://github.com/GDquest/krita-batch-exporter/blob/master/krita_batch_exporter/Manual.md) documentation.
+The plugin also comes with [text-based](https://github.com/GDquest/krita-batch-exporter/blob/master/batch_exporter/Manual.md) documentation.
 
 ## How to install
 
