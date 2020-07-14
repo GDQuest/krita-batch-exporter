@@ -1,8 +1,8 @@
-import os
 import re
 from collections import OrderedDict
 from functools import partial
 from itertools import groupby, product, starmap, tee
+from pathlib import Path
 
 from krita import Krita
 from PyQt5.QtCore import QSize
@@ -85,7 +85,7 @@ class WNode:
         name = name.split()
         name = filter(lambda n: a not in n, name)
         name = "_".join(name)
-        return sanitize(name)
+        return sanitize(self.cfg, name)
 
     @property
     def meta(self):
@@ -256,23 +256,24 @@ class WNode:
         extension, path = meta["e"], meta["p"][0]
 
         dirPath = (
-            exportPath(self.cfg, path, dirname)
+            exportPath(self.cfg, path, dirname, userDefined=True)
             if path
-            else exportPath(self.cfg, pathFS(self.parent), dirname)
+            else exportPath(self.cfg, pathFS(self.parent), dirname, userDefined=False)
         )
-        os.makedirs(dirPath, exist_ok=True)
+        dirPath.mkdir(parents=True, exist_ok=True)
 
-        def append_name(path, name, scale, margin, extension):
+        def appendName(path, name, scale, margin, extension):
             """
             Appends a formatted name to the path argument
             Returns the full path with the file
             """
             meta_s = self.cfg["meta"]["s"][0]
-            out = os.path.join(path, name)
+            out = name
             out += "_@{}x".format(scale / 100) if scale != meta_s else ""
             out += "_m{:03d}".format(margin) if margin else ""
             out += "." + extension
-            return out
+            out = path / out
+            return out.as_posix()
 
         it = product(scale, margin, extension)
         # Below: scale for scale, margin for margin, extension for extension
@@ -281,7 +282,7 @@ class WNode:
                 scale,
                 margin,
                 extension,
-                append_name(dirPath, self.name, scale, margin, extension),
+                appendName(dirPath, self.name, scale, margin, extension),
             ),
             it,
         )
@@ -321,13 +322,13 @@ class WNode:
         path, extension = "", meta["e"]
 
         dirPath = (
-            exportPath(self.cfg, path, dirname)
+            exportPath(self.cfg, path, dirname, userDefined=True)
             if path
-            else exportPath(self.cfg, pathFS(self.parent), dirname)
+            else exportPath(self.cfg, pathFS(self.parent), dirname, userDefined=False)
         )
-        os.makedirs(dirPath, exist_ok=True)
+        dirPath.mkdir(parents=True, exist_ok=True)
         ext = extension[0]
-        path = "{}{}".format(os.path.join(dirPath, self.name), ".{e}")
+        path = "{}{}".format(dirPath / self.name, ".{e}")
         path = path.format(e=ext)
         is_jpg = ext in ("jpg", "jpeg")
         if is_jpg in ("jpg", "jpeg"):
@@ -363,12 +364,12 @@ class WNode:
         path, extension = "", meta["e"]
 
         dirPath = (
-            exportPath(self.cfg, path, dirname)
+            exportPath(self.cfg, path, dirname, userDefined=True)
             if path
-            else exportPath(self.cfg, pathFS(self.parent), dirname)
+            else exportPath(self.cfg, pathFS(self.parent), dirname, userDefined=False)
         )
-        os.makedirs(dirPath, exist_ok=True)
-        path = "{}{}".format(os.path.join(dirPath, self.name), ".{e}")
+        dirPath.mkdir(parents=True, exist_ok=True)
+        path = "{}{}".format(dirPath / self.name, ".{e}")
         path = path.format(e=extension[0])
         is_jpg = extension in ("jpg", "jpeg")
         if is_jpg:

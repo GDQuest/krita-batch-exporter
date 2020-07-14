@@ -1,5 +1,6 @@
-import os
 from itertools import chain
+from pathlib import Path
+
 
 def iterPre(node, maxDepth=-1):
     """
@@ -139,7 +140,7 @@ def pathFS(node):
     """
     it = filter(lambda n: n.parent, path(node))
     it = map(lambda n: n.name, it)
-    return os.path.join('', *it)
+    return Path("").joinpath(*it)
 
 
 def iterDirs(node):
