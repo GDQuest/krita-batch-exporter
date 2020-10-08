@@ -2,6 +2,13 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## Krita Batch Exporter 1.1.1
+
+### Bug fixes
+
+- Fixed errors with export paths in Krita 4.3.0+.
+- Fixed missing attribute error when pressing export.
+
 ## Krita Batch Exporter 1.1.0
 
 ### Features
