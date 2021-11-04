@@ -10,7 +10,7 @@ from PyQt5.QtGui import QColor, QImage, QPainter
 
 from .Utils import flip, kickstart
 from .Utils.Export import exportPath, sanitize
-from .Utils.Tree import pathFS
+from .Utils.Tree import path, pathFS
 
 KI = Krita.instance()
 
@@ -198,6 +198,16 @@ class WNode:
     def isColorizeMask(self):
         return self.type == "colorizemask"
 
+    def inheritedMetadata(self):
+        non_export_parents = filter(lambda n: n.parent and not n.isMarked(), path(self))
+        inherited_meta = {}
+
+        for p in non_export_parents:
+            non_defaults = {k: v for k, v in p.meta.items() if v != self.cfg["meta"][k]}
+            inherited_meta.update(non_defaults)
+
+        return inherited_meta
+
     def rename(self, pattern):
         """
         Renames the layer, scanning for patterns in the user's input trying to preserve metadata.
@@ -252,6 +262,16 @@ class WNode:
         """
         img = nodeToImage(self)
         meta = self.meta
+
+        inherited_meta = self.inheritedMetadata()
+        meta.update({k:
+            inherited_meta[k]
+            if meta[k] == self.cfg["meta"][k] and inherited_meta.get(k)
+            else v
+
+            for k, v in meta.items()
+        })
+
         margin, scale = meta["m"], meta["s"]
         extension, path = meta["e"], meta["p"][0]
 
