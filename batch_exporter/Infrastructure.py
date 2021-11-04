@@ -248,7 +248,7 @@ class WNode:
                     else (r"$", r" {}{}{}".format(p[0], a, p[1]))
                     if how == "add"
                     else (
-                        r"\s*({}{})[\w,]+\s*".format(p[0], a),
+                        r"\s*({}{})[\w,/.]+\s*".format(p[0], a),
                         " " if how == "subtract" else r" \g<1>{} ".format(p[1]),
                     )
                 )
