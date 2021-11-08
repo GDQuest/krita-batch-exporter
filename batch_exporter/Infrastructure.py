@@ -10,7 +10,7 @@ from PyQt5.QtGui import QColor, QImage, QPainter
 
 from .Utils import flip, kickstart
 from .Utils.Export import exportPath, sanitize
-from .Utils.Tree import pathFS
+from .Utils.Tree import path, pathFS
 
 KI = Krita.instance()
 
@@ -90,33 +90,40 @@ class WNode:
     @property
     def meta(self):
         a, s = self.cfg["delimiters"].values()
-        meta = self.node.name().strip().split(a)
-        meta = starmap(lambda fst, snd: (fst[-1], snd.split()[0]), zip(meta[:-1], meta[1:]))
-        meta = filter(lambda m: m[0] in self.cfg["meta"].keys(), meta)
-        meta = OrderedDict((k, v.lower().split(s)) for k, v in meta)
-        meta.update({k: list(map(int, v)) for k, v in meta.items() if k in "ms"})
-        meta.setdefault("c", self.cfg["meta"]["c"])  # coa_tools
-        meta.setdefault("e", self.cfg["meta"]["e"])  # extension
-        meta.setdefault("m", self.cfg["meta"]["m"])  # margin
-        meta.setdefault("p", self.cfg["meta"]["p"])  # path
-        meta.setdefault("s", self.cfg["meta"]["s"])  # scale
-        meta.setdefault("t", self.cfg["meta"]["t"])  # trim
+        meta = {}
+
+        for m in self.node.name().strip().split():
+            data = m.split(a)
+
+            if len(data) == 2:
+                k, v = data[0], data[1].split(s)
+                meta[k] = list(map(int, v)) if k in "ms" else v
+
         return meta
+
+    def meta_safe_get(self, key):
+        return self.meta.get(key, self.cfg["meta"][key])
+
+    @property
+    def inherit(self):
+        return self.meta_safe_get("i")[0].lower() not in ["false", "no"]
 
     @property
     def path(self):
-        return self.meta["p"][0]
+        return self.meta_safe_get("p")[0]
 
     @property
     def coa(self):
-        return self.meta["c"][0]
+        return self.meta_safe_get("c")[0]
 
     @property
     def trim(self):
-        if self.meta["t"][0].lower() in ["false", "no"]:
+        trim = self.meta_safe_get("t")
+
+        if trim[0].lower() in ["false", "no"]:
             return False
         else:
-            return self.meta["t"]
+            return trim
 
     @property
     def parent(self):
@@ -198,6 +205,17 @@ class WNode:
     def isColorizeMask(self):
         return self.type == "colorizemask"
 
+    def inheritedMetadata(self):
+        non_export_parents = filter(lambda n: n.parent and not n.isMarked(), path(self))
+        inherited_meta = {}
+
+        for p in non_export_parents:
+            if not p.inherit:
+                inherited_meta = {}
+            inherited_meta.update(p.meta.items())
+
+        return inherited_meta
+
     def rename(self, pattern):
         """
         Renames the layer, scanning for patterns in the user's input trying to preserve metadata.
@@ -238,7 +256,7 @@ class WNode:
                     else (r"$", r" {}{}{}".format(p[0], a, p[1]))
                     if how == "add"
                     else (
-                        r"\s*({}{})[\w,]+\s*".format(p[0], a),
+                        r"\s*({}{})[\w,/.]+\s*".format(p[0], a),
                         " " if how == "subtract" else r" \g<1>{} ".format(p[1]),
                     )
                 )
@@ -251,7 +269,13 @@ class WNode:
         processes the image, names it based on metadata, and saves the image to the disk.
         """
         img = nodeToImage(self)
-        meta = self.meta
+        meta = self.cfg["meta"].copy()
+
+        if self.inherit:
+            meta.update(self.inheritedMetadata())
+
+        meta.update(self.meta)
+
         margin, scale = meta["m"], meta["s"]
         extension, path = meta["e"], meta["p"][0]
 
@@ -318,7 +342,8 @@ class WNode:
 
     def saveCOA(self, dirname=""):
         img = nodeToImage(self)
-        meta = self.meta
+        meta = self.cfg["meta"].copy()
+        meta.update(self.meta)
         path, extension = "", meta["e"]
 
         dirPath = (
@@ -360,7 +385,8 @@ class WNode:
                 coord_rel_x, image_height * count + coord_rel_y, nodeToImage(image),
             )
 
-        meta = self.meta
+        meta = self.cfg["meta"].copy()
+        meta.update(self.meta)
         path, extension = "", meta["e"]
 
         dirPath = (
