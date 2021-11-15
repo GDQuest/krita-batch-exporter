@@ -4,8 +4,7 @@ GDQuest Batch Exporter
 Batch export art assets from Krita using layer metadata.
 Updates and reads metadata in Krita's layer names, and uses it to smartly process and export layers.
 Export to the Blender Cut-Out Animation tools for modular 2d game animation.
-
-SPDX-License-Identifier: GPL-3.0-or-later
+SPDX-License-Identifier: GPL-3.0-only
 """
 
 from functools import partial

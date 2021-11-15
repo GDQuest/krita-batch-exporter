@@ -1,4 +1,6 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+#
+#  SPDX-License-Identifier: GPL-3.0-or-later
+#
 
 from itertools import chain
 from pathlib import Path
