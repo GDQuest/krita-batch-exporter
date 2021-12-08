@@ -43,8 +43,6 @@ install() {
 clean() {
 	pykrita_dir="$1"
 
-	echo "hello"
-
 	echo "Cleaning up the existing addon directory..."
 	echo "$pykrita_dir/$addon_directory"
 	rm -rf "${pykrita_dir:?}/$addon_directory" "${pykrita_dir:?}/$desktop_file"
