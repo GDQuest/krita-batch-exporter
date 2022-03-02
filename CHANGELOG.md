@@ -2,6 +2,11 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## Krita Batch Exporter 1.1.2
+
+### Features
+- Float values now accepted as scales, e.g. `s=33.33`.
+
 ## Krita Batch Exporter 1.1.1
 
 ### Bug fixes
