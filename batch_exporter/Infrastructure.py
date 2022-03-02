@@ -101,7 +101,12 @@ class WNode:
 
             if len(data) == 2:
                 k, v = data[0], data[1].split(s)
-                meta[k] = list(map(int, v)) if k in "ms" else v
+                if k == "m":
+                    meta[k] = list(map(int, v))
+                elif k == "s":
+                    meta[k] = list(map(float, v))
+                else:
+                    meta[k] = v
 
         return meta
 
