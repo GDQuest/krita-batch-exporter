@@ -94,12 +94,8 @@ class WNode:
 
             if len(data) == 2:
                 k, v = data[0], data[1].split(s)
-                if k == "m":
-                    meta[k] = list(map(int, v))
-                elif k == "s":
-                    meta[k] = list(map(float, v))
-                else:
-                    meta[k] = v
+                parser = int if k == "m" else float if k == "s" else lambda x: x
+                meta[k] = list(map(parser, v))
 
         return meta
 
