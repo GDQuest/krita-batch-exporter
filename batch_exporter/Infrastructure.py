@@ -24,14 +24,7 @@ def nodeToImage(wnode):
     Returns an QImage 8-bit sRGB
     """
     SRGB_PROFILE = "sRGB-elle-V2-srgbtrc.icc"
-    if wnode.trim == False:
-        bounds = KI.activeDocument().bounds()
-        x = bounds.x()
-        y = bounds.y()
-        w = bounds.width()
-        h = bounds.height()
-    else:
-        [x, y, w, h] = wnode.bounds
+    [x, y, w, h] = wnode.bounds
 
     is_srgb = (
         wnode.node.colorModel() == "RGBA"
@@ -143,18 +136,16 @@ class WNode:
 
     @property
     def position(self):
-        bounds = self.node.bounds()
-        return bounds.x(), bounds.y()
+        return self.bounds[0], self.bounds[1]
 
     @property
     def bounds(self):
-        bounds = self.node.bounds()
+        bounds = KI.activeDocument().bounds() if self.trim == False else self.node.bounds()
         return bounds.x(), bounds.y(), bounds.width(), bounds.height()
 
     @property
     def size(self):
-        bounds = self.node.bounds()
-        return bounds.width(), bounds.height()
+        return self.bounds[2], self.bounds[3]
 
     def hasDestination(self):
         return "d=" in self.node.name()
