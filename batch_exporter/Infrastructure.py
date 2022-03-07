@@ -16,6 +16,7 @@ from .Utils import flip, kickstart
 from .Utils.Export import exportPath, sanitize
 from .Utils.Tree import path, pathFS
 
+RE_QUOTED_PATH = re.compile(r'p="(.*?)"\s*')
 KI = Krita.instance()
 
 
@@ -78,7 +79,8 @@ class WNode:
     @property
     def name(self):
         a = self.cfg["delimiters"]["assign"]
-        name = self.node.name()
+        name = self.node.name().strip()
+        name = RE_QUOTED_PATH.sub("", name)
         name = name.split()
         name = filter(lambda n: a not in n, name)
         name = "_".join(name)
@@ -89,7 +91,11 @@ class WNode:
         a, s = self.cfg["delimiters"].values()
         meta = {}
 
-        for m in self.node.name().strip().split():
+        name = self.node.name().strip()
+        if len(path := RE_QUOTED_PATH.findall(name)) == 1:
+            meta["p"] = path
+
+        for m in RE_QUOTED_PATH.sub("", name).split():
             data = m.split(a)
 
             if len(data) == 2:
