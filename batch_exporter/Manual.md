@@ -14,7 +14,7 @@ the layer name. The supported options are:
 
 - `[e=jpg,png]` - supported export image extensions
 - `[s=20,33.333,100,150]` - size in `%`.
-- `[p=path/to/custom/export/directory]` - custom output path.
+- `[p=path/to/custom/export/directory]` or `[p="path with spaces"]` - custom output path.
   Paths can be absolute or relative to the Krita document.
 - `[m=20,30,100]` - extra margin in `px`. The layer is trimmed to the
   smallest bounding box by default. This option adds extra padding around the
